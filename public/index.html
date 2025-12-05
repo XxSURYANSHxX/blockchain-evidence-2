@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Evid-DGC | Blockchain Evidence Management</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔐</text></svg>">
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+</head>
+<body>
+    <!-- Floating Particles Background -->
+    <div class="particles" id="particles"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🔐 EVID-DGC</h1>
+            <p>🌟 Next-Generation Blockchain Evidence Management System 🌟</p>
+            <div class="subtitle">
+                <span class="highlight">🔒 Secure</span> • 
+                <span class="highlight">🌐 Decentralized</span> • 
+                <span class="highlight">⚡ Transparent</span>
+            </div>
+        </div>
+
+        <!-- Wallet Connection Section -->
+        <div id="walletSection" class="card">
+            <div class="card-header">
+                <h2>🦊 Connect Your Digital Wallet</h2>
+                <p>Connect your MetaMask wallet to access the evidence management system</p>
+            </div>
+            <div class="card-body">
+                <div class="wallet-info">
+                    <div class="wallet-icon">🔗</div>
+                    <p>Secure blockchain connection required</p>
+                </div>
+                <button id="connectWallet" class="btn btn-primary pulse">
+                    <span>🚀 Connect MetaMask Wallet</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Wallet Status -->
+        <div id="walletStatus" class="wallet-status hidden">
+            <h3>✅ Wallet Connected Successfully!</h3>
+            <div class="wallet-details">
+                <p><strong>📍 Address:</strong></p>
+                <div id="walletAddress" class="wallet-address"></div>
+                <p><strong>🌐 Network:</strong> <span class="network-name">Sepolia Testnet</span></p>
+            </div>
+        </div>
+
+        <!-- Registration Section -->
+        <div id="registrationSection" class="card hidden">
+            <div class="card-header">
+                <h2>👤 User Registration</h2>
+                <p>Choose your role and register to access the system</p>
+            </div>
+            
+            <!-- Role Selection -->
+            <div class="role-selection">
+                <h3>🎯 Select Your Role</h3>
+                <div class="role-grid">
+                    <div class="role-card" data-role="1">
+                        <div class="role-card-content">
+                            <div class="role-icon">👁️</div>
+                            <div class="role-title">Public Viewer</div>
+                            <div class="role-description">View publicly released cases and evidence</div>
+                        </div>
+                    </div>
+                    <div class="role-card" data-role="2">
+                        <div class="role-card-content">
+                            <div class="role-icon">🕵️</div>
+                            <div class="role-title">Investigator</div>
+                            <div class="role-description">Create cases and manage investigations</div>
+                        </div>
+                    </div>
+                    <div class="role-card" data-role="3">
+                        <div class="role-card-content">
+                            <div class="role-icon">🔬</div>
+                            <div class="role-title">Forensic Analyst</div>
+                            <div class="role-description">Analyze and process evidence</div>
+                        </div>
+                    </div>
+                    <div class="role-card" data-role="4">
+                        <div class="role-card-content">
+                            <div class="role-icon">⚖️</div>
+                            <div class="role-title">Legal Professional</div>
+                            <div class="role-description">Legal review and case preparation</div>
+                        </div>
+                    </div>
+                    <div class="role-card" data-role="5">
+                        <div class="role-card-content">
+                            <div class="role-icon">🏛️</div>
+                            <div class="role-title">Court Official</div>
+                            <div class="role-description">Court proceedings and case management</div>
+                        </div>
+                    </div>
+                    <div class="role-card" data-role="6">
+                        <div class="role-card-content">
+                            <div class="role-icon">📋</div>
+                            <div class="role-title">Evidence Manager</div>
+                            <div class="role-description">Manage evidence lifecycle and access</div>
+                        </div>
+                    </div>
+                    <div class="role-card" data-role="7">
+                        <div class="role-card-content">
+                            <div class="role-icon">🔍</div>
+                            <div class="role-title">Auditor</div>
+                            <div class="role-description">System auditing and compliance</div>
+                        </div>
+                    </div>
+                    <div class="role-card" data-role="8">
+                        <div class="role-card-content">
+                            <div class="role-icon">👑</div>
+                            <div class="role-title">Administrator</div>
+                            <div class="role-description">System administration and oversight</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Registration Form -->
+            <form id="registrationForm" class="registration-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fullName">👤 Full Name *</label>
+                        <input type="text" id="fullName" class="form-control" placeholder="Enter your full name" required>
+                    </div>
+                </div>
+
+                <input type="hidden" id="userRole" value="">
+
+                <!-- Professional Fields (hidden by default) -->
+                <div id="professionalFields" class="professional-fields">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="badgeNumber">🏷️ Badge/ID Number *</label>
+                            <input type="text" id="badgeNumber" class="form-control" placeholder="Enter your badge or ID number">
+                        </div>
+                        <div class="form-group">
+                            <label for="department">🏢 Department *</label>
+                            <input type="text" id="department" class="form-control" placeholder="Enter your department">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="jurisdiction">🌍 Jurisdiction *</label>
+                        <input type="text" id="jurisdiction" class="form-control" placeholder="Enter your jurisdiction">
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-success">
+                        <span>✨ Register & Enter System</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Already Registered Section -->
+        <div id="alreadyRegisteredSection" class="card hidden">
+            <div class="card-header">
+                <h2>🎉 Welcome Back!</h2>
+                <p>You are already registered in the system</p>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">👤</div>
+                <div class="user-details">
+                    <h3 id="userName">Loading...</h3>
+                    <div class="user-role">
+                        <span id="userRoleName" class="badge">Loading...</span>
+                    </div>
+                    <p><strong>🏢 Department:</strong> <span id="userDepartment">Loading...</span></p>
+                </div>
+            </div>
+            <div class="card-actions">
+                <button id="goToDashboard" class="btn btn-primary">
+                    <span>🚀 Go to Dashboard</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- System Features -->
+        <div class="features-section">
+            <h2>🌟 System Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🔐</div>
+                    <h3>Blockchain Security</h3>
+                    <p>Immutable evidence storage with cryptographic verification</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🌐</div>
+                    <h3>IPFS Storage</h3>
+                    <p>Decentralized file storage for evidence and documents</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">👥</div>
+                    <h3>Role-Based Access</h3>
+                    <p>8 different user roles with specific permissions</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Audit Trail</h3>
+                    <p>Complete transparency with immutable activity logs</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <h3>⚡ Processing...</h3>
+            <p>Please wait while we process your request</p>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Create floating particles
+        function createParticles() {
+            const particles = document.getElementById('particles');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 20 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+                particles.appendChild(particle);
+            }
+        }
+
+        // Role selection functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            createParticles();
+            
+            const roleCards = document.querySelectorAll('.role-card');
+            const userRoleInput = document.getElementById('userRole');
+            const professionalFields = document.getElementById('professionalFields');
+            
+            roleCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    // Remove selected class from all cards
+                    roleCards.forEach(c => c.classList.remove('selected'));
+                    
+                    // Add selected class to clicked card
+                    this.classList.add('selected');
+                    
+                    // Set the role value
+                    const role = this.dataset.role;
+                    userRoleInput.value = role;
+                    
+                    // Show/hide professional fields
+                    if (role === '1') { // Public Viewer
+                        professionalFields.classList.remove('show');
+                        document.getElementById('badgeNumber').required = false;
+                        document.getElementById('department').required = false;
+                        document.getElementById('jurisdiction').required = false;
+                    } else {
+                        professionalFields.classList.add('show');
+                        document.getElementById('badgeNumber').required = true;
+                        document.getElementById('department').required = true;
+                        document.getElementById('jurisdiction').required = true;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
