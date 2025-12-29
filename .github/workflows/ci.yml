@@ -36,6 +36,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
     
     - name: Run security audit
       run: npm audit --audit-level moderate
@@ -44,8 +46,9 @@ jobs:
       uses: trufflesecurity/trufflehog@main
       with:
         path: ./
-        base: main
+        base: ${{ github.event.repository.default_branch }}
         head: HEAD
+        extra_args: --debug --only-verified
 
   lint:
     name: 📝 Code Quality
