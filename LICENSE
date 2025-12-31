@@ -1,0 +1,52 @@
+MIT License
+
+Copyright (c) 2024 EVID-DGC Team
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Additional Terms for Evidence Management Systems
+
+While this software is licensed under the MIT License, users implementing this
+system for evidence management should be aware of additional considerations:
+
+### Legal Compliance
+- Users are responsible for ensuring compliance with local, state, and federal
+  laws regarding evidence handling and digital forensics
+- Implementation must meet jurisdictional requirements for evidence management
+- Users must ensure proper chain of custody procedures are followed
+
+### Data Security
+- Users are responsible for implementing appropriate security measures
+- Sensitive evidence data should be handled according to relevant regulations
+- Users must ensure proper encryption and access controls are in place
+
+### Professional Use
+- This software is designed for professional law enforcement and legal use
+- Users should ensure proper training and certification before deployment
+- Implementation should follow industry best practices for evidence management
+
+### Disclaimer
+- The authors and contributors are not responsible for legal compliance
+- Users assume all responsibility for proper implementation and use
+- This software should be thoroughly tested before production deployment
+
+For questions regarding licensing or professional implementation, contact:
+legal@evid-dgc.org

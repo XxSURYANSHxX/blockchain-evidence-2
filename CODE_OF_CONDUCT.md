@@ -1,32 +1,37 @@
-# Code of Conduct
+# Contributor Covenant Code of Conduct
 
 ## Our Pledge
 
-We as members, contributors, and leaders pledge to make participation in our blockchain evidence management community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
+We as members, contributors, and leaders pledge to make participation in the EVID-DGC blockchain evidence management community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, religion, or sexual identity and orientation.
 
-We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
+We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community while maintaining the highest standards of integrity required for evidence management systems.
 
 ## Our Standards
 
-Examples of behavior that contributes to a positive environment for our community include:
+### Positive Behavior
 
-* Demonstrating empathy and kindness toward other people
-* Being respectful of differing opinions, viewpoints, and experiences
-* Giving and gracefully accepting constructive feedback
-* Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
-* Focusing on what is best not just for us as individuals, but for the overall community
-* Maintaining the highest standards of integrity when handling evidence data
-* Respecting the confidential and sensitive nature of evidence management systems
+Examples of behavior that contributes to a positive environment:
 
-Examples of unacceptable behavior include:
+* **Professional Communication**: Using welcoming and inclusive language appropriate for law enforcement and legal professionals
+* **Respectful Collaboration**: Being respectful of differing opinions, viewpoints, and experiences
+* **Constructive Feedback**: Giving and gracefully accepting constructive feedback
+* **Accountability**: Accepting responsibility and apologizing to those affected by our mistakes
+* **Community Focus**: Focusing on what is best for the overall community and end users
+* **Data Integrity**: Maintaining the highest standards when handling evidence-related code
+* **Confidentiality**: Respecting the sensitive nature of evidence management systems
+* **Security Awareness**: Prioritizing security and privacy in all contributions
 
-* The use of sexualized language or imagery, and sexual attention or advances of any kind
-* Trolling, insulting or derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or email address, without their explicit permission
-* Attempting to access, modify, or compromise evidence data without proper authorization
-* Sharing sensitive case information or evidence outside of authorized channels
-* Other conduct which could reasonably be considered inappropriate in a professional setting
+### Unacceptable Behavior
+
+Examples of unacceptable behavior:
+
+* **Harassment**: The use of sexualized language or imagery, and sexual attention or advances
+* **Trolling**: Trolling, insulting or derogatory comments, and personal or political attacks
+* **Privacy Violations**: Publishing others' private information without explicit permission
+* **Security Violations**: Attempting to access, modify, or compromise evidence data without authorization
+* **Data Breaches**: Sharing sensitive case information or evidence outside authorized channels
+* **Unprofessional Conduct**: Other conduct inappropriate in a professional law enforcement setting
+* **System Abuse**: Misusing the system for purposes other than legitimate evidence management
 
 ## Enforcement Responsibilities
 
@@ -36,11 +41,11 @@ Community leaders have the right and responsibility to remove, edit, or reject c
 
 ## Scope
 
-This Code of Conduct applies within all community spaces, and also applies when an individual is officially representing the community in public spaces. Examples of representing our community include using an official e-mail address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
+This Code of Conduct applies within all community spaces, and also applies when an individual is officially representing the community in public spaces. Examples of representing our community include using an official email address, posting via an official social media account, or acting as an appointed representative at an online or offline event.
 
-## Enforcement
+## Reporting
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at [INSERT CONTACT EMAIL]. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the community leaders responsible for enforcement at **conduct@evid-dgc.org**. All complaints will be reviewed and investigated promptly and fairly.
 
 All community leaders are obligated to respect the privacy and security of the reporter of any incident.
 
@@ -72,34 +77,51 @@ Community leaders will follow these Community Impact Guidelines in determining t
 
 **Consequence**: A permanent ban from any sort of public interaction within the community.
 
-## Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.0, available at https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
-
-Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder](https://github.com/mozilla/diversity).
-
-[homepage]: https://www.contributor-covenant.org
-
-For answers to common questions about this code of conduct, see the FAQ at https://www.contributor-covenant.org/faq. Translations are available at https://www.contributor-covenant.org/translations.
-
 ## Special Considerations for Evidence Management
 
-Given the sensitive nature of evidence management systems, additional guidelines apply:
-
 ### Data Security and Privacy
-- Never share, discuss, or reference actual case data or evidence in public forums
-- Use only mock or anonymized data for examples and demonstrations
-- Report any potential security vulnerabilities through proper channels
-- Maintain strict confidentiality regarding system access and user information
+
+* **No Real Data**: Never share, discuss, or reference actual case data or evidence in public forums
+* **Mock Data Only**: Use only anonymized or mock data for examples and demonstrations
+* **Vulnerability Reporting**: Report security vulnerabilities through proper channels (security@evid-dgc.org)
+* **User Privacy**: Maintain strict confidentiality regarding system access and user information
+* **Compliance**: Ensure all contributions comply with relevant data protection regulations
 
 ### Professional Standards
-- Maintain the highest ethical standards when contributing to evidence management systems
-- Understand that this software may be used in legal proceedings and law enforcement
-- Ensure all contributions meet professional quality standards
-- Respect the critical nature of evidence integrity and chain of custody
 
-### Legal Compliance
-- Ensure all contributions comply with relevant laws and regulations
-- Respect jurisdictional requirements for evidence handling
-- Maintain awareness of legal implications of system modifications
-- Report any concerns about legal compliance to project maintainers
+* **Ethical Development**: Maintain the highest ethical standards when contributing to evidence management systems
+* **Legal Awareness**: Understand that this software may be used in legal proceedings and law enforcement
+* **Quality Assurance**: Ensure all contributions meet professional quality standards appropriate for legal use
+* **Chain of Custody**: Respect the critical nature of evidence integrity and chain of custody requirements
+* **Audit Trail**: Maintain proper documentation and audit trails for all system modifications
+
+### Legal and Regulatory Compliance
+
+* **Law Compliance**: Ensure all contributions comply with relevant laws and regulations
+* **Jurisdictional Awareness**: Respect jurisdictional requirements for evidence handling
+* **Legal Impact**: Maintain awareness of legal implications of system modifications
+* **Compliance Reporting**: Report any concerns about legal compliance to project maintainers
+* **Documentation**: Maintain proper documentation for regulatory compliance
+
+## Attribution
+
+This Code of Conduct is adapted from the [Contributor Covenant][homepage], version 2.1, available at [https://www.contributor-covenant.org/version/2/1/code_of_conduct.html][v2.1].
+
+Community Impact Guidelines were inspired by [Mozilla's code of conduct enforcement ladder][Mozilla CoC].
+
+For answers to common questions about this code of conduct, see the FAQ at [https://www.contributor-covenant.org/faq][FAQ]. Translations are available at [https://www.contributor-covenant.org/translations][translations].
+
+[homepage]: https://www.contributor-covenant.org
+[v2.1]: https://www.contributor-covenant.org/version/2/1/code_of_conduct.html
+[Mozilla CoC]: https://github.com/mozilla/diversity
+[FAQ]: https://www.contributor-covenant.org/faq
+[translations]: https://www.contributor-covenant.org/translations
+
+---
+
+**Contact Information:**
+- **General Conduct Issues**: conduct@evid-dgc.org
+- **Security Concerns**: security@evid-dgc.org
+- **Project Maintainers**: maintainers@evid-dgc.org
+
+*This Code of Conduct is designed to ensure EVID-DGC maintains the highest standards of professionalism required for evidence management systems used in legal and law enforcement contexts.*
