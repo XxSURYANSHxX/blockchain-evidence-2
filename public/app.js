@@ -52,6 +52,7 @@ async function initializeApp() {
  *
  * If elements with IDs "menuToggle" or "navMenu" are not present, the function does nothing.
  */
+// Initialize hamburger menu
 function initializeHamburgerMenu() {
     const menuToggle = document.getElementById('menuToggle');
     const navMenu = document.getElementById('navMenu');
@@ -435,6 +436,7 @@ function getRoleClass(role) {
  *
  * Clears all stored client data, resets the in-memory wallet state and the connect button UI, shows only the wallet section, and navigates to index.html to reload the app.
  */
+// eslint-disable-next-line no-unused-vars
 function logout() {
     // Clear all stored data
     localStorage.clear();
@@ -461,6 +463,7 @@ function logout() {
  * Clears stored wallet state, resets the connect button to an enabled "Connect MetaMask Wallet" state,
  * hides registration and status sections, shows the wallet connect section, and displays a success alert.
  */
+// eslint-disable-next-line no-unused-vars
 function disconnectWallet() {
     // Clear wallet connection
     userAccount = null;
