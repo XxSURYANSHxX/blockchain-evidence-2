@@ -271,8 +271,14 @@ const logAdminAction = async (adminWallet, actionType, targetWallet, details) =>
 };
 
 // API Routes
+// Rate limiter for case timeline pages
+const timelineLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100 // limit each IP to 100 requests per window for timeline pages
+});
+
 // Case timeline route
-app.get('/case-timeline', (req, res) => {
+app.get('/case-timeline', timelineLimiter, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'case-timeline.html'));
 });
 
