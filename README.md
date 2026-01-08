@@ -86,11 +86,20 @@ Digital evidence management often faces challenges like data tampering, lack of 
 ## 🛠️ Technical Info
 
 ### Tech Stack
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript, Socket.IO Client
-- **Backend**: Node.js, Express.js, Socket.IO
-- **Database**: Supabase (PostgreSQL with Row Level Security)
-- **Tools**: Sharp (Image processing), PDF-Lib (Watermarking), Lucide Icons
-- **Deployment**: Render
+
+| Category | Technologies |
+|----------|-------------|
+| **Frontend** | HTML5, CSS3, Vanilla JavaScript, Socket.IO Client |
+| **Backend** | Node.js v16+, Express.js, Socket.IO (Real-time) |
+| **Smart Contracts** | Solidity, Remix IDE, Ganache, Polygon Network |
+| **Storage** | IPFS (Evidence Files), Pinata (IPFS Pinning) |
+| **Database** | Supabase (PostgreSQL with Row Level Security) |
+| **Authentication** | MetaMask/Web3, Email/Password (Supabase Auth) |
+| **Image Processing** | Sharp (Compression & Optimization) |
+| **Document Processing** | PDF-Lib (Watermarking & Generation) |
+| **Icons & UI** | Lucide Icons, Custom CSS Animations |
+| **Hosting** | Render (Backend), Compatible with Vercel/Netlify |
+| **Version Control** | Git, GitHub |
 
 ### User Roles
 The system implements 8 distinct roles to ensure strict access control:
@@ -156,39 +165,284 @@ The system implements 8 distinct roles to ensure strict access control:
 ## 🚀 How to Run Locally
 
 ### Prerequisites
-- **Node.js** (v16 or higher)
-- **MetaMask** browser extension
-- **Supabase** account
+Before you begin, ensure you have the following installed:
 
-### 1. Environment Setup
+- **Node.js** (v16 or higher) - [Download](https://nodejs.org/)
+- **npm** (comes with Node.js) or **yarn**
+- **Git** - [Download](https://git-scm.com/)
+- **MetaMask** browser extension - [Install](https://metamask.io/)
+- **Supabase** account - [Sign up](https://supabase.com/)
+- **Code Editor** (VS Code recommended)
+
+### 1. Clone Repository
 ```bash
-# Clone repository
+# Clone the repository
 git clone https://github.com/Gooichand/blockchain-evidence.git
-cd blockchain-evidence
 
-# Install dependencies
+# Navigate to project directory
+cd blockchain-evidence
+```
+
+### 2. Install Dependencies
+```bash
+# Install all required packages
 npm install
 
-# Setup environment variables
-cp .env.example .env
-# Edit .env with your Supabase credentials
+# Or using yarn
+yarn install
 ```
 
-### 2. Database Setup
-```sql
--- Run in Supabase SQL Editor:
--- 1. Execute complete-database-setup.sql
--- 2. Note: You can edit the initial admin wallet address at the end of the file before running.
-```
-
-### 3. Start Application
+### 3. Environment Configuration
 ```bash
-# Full system (API + Frontend)
-npm start
-
-# Frontend only (development)
-cd public && python -m http.server 8080
+# Create environment file from example
+cp .env.example .env
 ```
+
+Edit `.env` file with your configuration:
+```env
+# Supabase Configuration
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_anon_key
+
+# Server Configuration
+PORT=3000
+NODE_ENV=development
+
+# Blockchain Network (optional for local development)
+BLOCKCHAIN_NETWORK=localhost
+```
+
+### 4. Database Setup
+1. Log in to your [Supabase Dashboard](https://app.supabase.com/)
+2. Create a new project or select existing one
+3. Navigate to SQL Editor
+4. Execute the following SQL files in order:
+
+```sql
+-- Step 1: Core database structure
+-- Copy and run: complete-database-setup.sql
+
+-- Step 2: Evidence tagging system (optional)
+-- Copy and run: evidence-tagging-schema.sql
+
+-- Step 3: Evidence export system (optional)
+-- Copy and run: evidence-export-schema.sql
+```
+
+**Note**: You can edit the initial admin wallet address at the end of `complete-database-setup.sql` before running.
+
+### 5. MetaMask Configuration
+1. Install MetaMask extension in your browser
+2. Create or import a wallet
+3. Add the admin wallet address to the database (in SQL step above)
+4. For local blockchain testing, configure Ganache network in MetaMask
+
+### 6. Start Development Server
+```bash
+# Start the backend server with auto-reload
+npm run dev
+
+# Or for production mode
+npm start
+```
+
+The server will start on `http://localhost:3000`
+
+### 7. Access the Application
+Open your browser and navigate to:
+- **Main Application**: http://localhost:3000
+- **Admin Dashboard**: http://localhost:3000/admin.html
+- **API Health Check**: http://localhost:3000/health
+
+### 8. Test User Login
+For development and testing:
+1. Navigate to the login page
+2. Use MetaMask to connect with the admin wallet
+3. Or use email/password authentication (if configured)
+
+### Common Development Commands
+```bash
+# Install new dependency
+npm install package-name
+
+# Run tests
+npm test
+
+# Check for linting errors
+npm run lint
+
+# Build for production
+npm run build
+```
+
+---
+
+## 🚀 Production Deployment
+
+### Current Hosting
+The application is currently hosted on **Render** with the following configuration:
+- **Live URL**: [https://evid-dgc.onrender.com](https://evid-dgc.onrender.com)
+- **Platform**: Render.com
+- **Database**: Supabase (PostgreSQL)
+- **File Storage**: IPFS via Pinata
+
+### Deployment Configuration
+
+#### Environment Variables Required
+Ensure the following environment variables are set in your production environment:
+
+```env
+# Supabase Configuration
+SUPABASE_URL=your_production_supabase_url
+SUPABASE_KEY=your_production_supabase_key
+
+# Server Configuration
+PORT=3000
+NODE_ENV=production
+
+# IPFS/Pinata Configuration (if using)
+PINATA_API_KEY=your_pinata_api_key
+PINATA_SECRET_KEY=your_pinata_secret_key
+
+# Blockchain Network
+BLOCKCHAIN_NETWORK=polygon
+BLOCKCHAIN_RPC_URL=your_rpc_url
+
+```
+
+### Deploy to Render
+
+#### Using Git Integration (Recommended)
+1. **Connect Repository**:
+   - Go to [Render Dashboard](https://dashboard.render.com/)
+   - Click "New +" → "Web Service"
+   - Connect your GitHub repository
+
+2. **Configure Service**:
+   ```yaml
+   Name: evid-dgc
+   Environment: Node
+   Build Command: npm install
+   Start Command: npm start
+   ```
+
+3. **Set Environment Variables**:
+   - Add all required environment variables in Render dashboard
+   - Navigate to "Environment" tab
+   - Add each variable from the list above
+
+4. **Deploy**:
+   - Click "Create Web Service"
+   - Render will automatically deploy on every push to main branch
+
+
+### Deploy to Netlify
+
+```bash
+# Install Netlify CLI
+npm install -g netlify-cli
+
+# Login to Netlify
+netlify login
+
+# Deploy
+netlify deploy --prod
+```
+
+Or drag and drop the `public` folder on [Netlify Drop](https://app.netlify.com/drop).
+
+
+### Continuous Deployment
+The project is configured for automatic deployment:
+- **Trigger**: Push to `main` branch
+- **Build**: Automatic via `npm install`
+- **Deploy**: Automatic via hosting provider
+- **Rollback**: Available through hosting dashboard
+
+### Monitoring & Logs
+- **Application Logs**: Available in Render/Vercel/Netlify dashboard
+- **Database Logs**: Available in Supabase dashboard
+- **Uptime Monitoring**: Consider using services like UptimeRobot
+
+For detailed deployment troubleshooting, see [Deployment Documentation](docs/DEPLOYMENT.md).
+
+---
+
+## 🏗️ Architecture
+
+### System Architecture
+
+```
+┌─────────────────┐
+│   Web Browser   │
+│  (MetaMask +    │
+│   Frontend)     │
+└────────┬────────┘
+         │
+         │ HTTPS
+         ▼
+┌─────────────────────────────────┐
+│     Express.js Backend          │
+│  ┌──────────────────────────┐   │
+│  │  Authentication Layer    │   │
+│  │  (MetaMask/Email)        │   │
+│  └──────────────────────────┘   │
+│  ┌──────────────────────────┐   │
+│  │  Role-Based Access       │   │
+│  │  Control (RBAC)          │   │
+│  └──────────────────────────┘   │
+│  ┌──────────────────────────┐   │
+│  │  Evidence Processing     │   │
+│  │  (Upload/Watermark)      │   │
+│  └──────────────────────────┘   │
+│  ┌──────────────────────────┐   │
+│  │  Real-time Events        │   │
+│  │  (Socket.IO)             │   │
+│  └──────────────────────────┘   │
+└────┬──────────┬─────────┬───────┘
+     │          │         │
+     │          │         │
+     ▼          ▼         ▼
+┌─────────┐ ┌─────────┐ ┌──────────┐
+│Supabase │ │  IPFS   │ │Blockchain│
+│PostgreSQL│ │(Pinata) │ │(Polygon) │
+│   +RLS  │ │ Storage │ │ Network  │
+└─────────┘ └─────────┘ └──────────┘
+```
+
+### Data Flow
+
+**Evidence Upload Flow**:
+1. User authenticates via MetaMask or Email
+2. Role verification through RBAC system
+3. Evidence file uploaded to Express backend
+4. File processed (watermark, compression)
+5. File stored in IPFS via Pinata
+6. Metadata and IPFS hash stored in Supabase
+7. Transaction recorded on Polygon blockchain
+8. Audit log created in database
+9. Real-time notification sent via Socket.IO
+
+**Access Control Flow**:
+1. User login → JWT token generated
+2. Each request validated against user role
+3. Supabase RLS policies enforce database security
+4. Audit trail logged for compliance
+
+### Key Components
+
+| Component | Technology | Purpose |
+|-----------|------------|----------|
+| **Frontend** | HTML/CSS/JS | User interface and interactions |
+| **API Server** | Express.js | REST API and business logic |
+| **WebSocket** | Socket.IO | Real-time notifications |
+| **Database** | Supabase (PostgreSQL) | Structured data storage |
+| **File Storage** | IPFS/Pinata | Decentralized evidence storage |
+| **Blockchain** | Polygon | Immutable audit trail |
+| **Authentication** | MetaMask/Supabase Auth | User authentication |
+| **Authorization** | Custom RBAC | Role-based permissions |
+
+For detailed architecture documentation, see [Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md).
 
 ---
 
