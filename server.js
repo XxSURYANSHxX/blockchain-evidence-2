@@ -271,8 +271,14 @@ const logAdminAction = async (adminWallet, actionType, targetWallet, details) =>
 };
 
 // API Routes
+// Rate limiter for public demo pages
+const demoPageLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 300 // limit each IP to 300 requests per window for demo pages
+});
+
 // Public demo case route
-app.get('/demo-case', (req, res) => {
+app.get('/demo-case', demoPageLimiter, (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'demo-case.html'));
 });
 
