@@ -271,6 +271,26 @@ const logAdminAction = async (adminWallet, actionType, targetWallet, details) =>
 };
 
 // API Routes
+// Public demo case route
+app.get('/demo-case', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'demo-case.html'));
+});
+
+// Privacy policy route
+app.get('/privacy', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'privacy.html'));
+});
+
+// Data protection route
+app.get('/data-protection', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'data-protection.html'));
+});
+
+// Case timeline route
+app.get('/case-timeline', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'case-timeline.html'));
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', timestamp: new Date().toISOString() });

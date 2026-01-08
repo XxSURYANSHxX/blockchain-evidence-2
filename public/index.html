@@ -36,6 +36,14 @@
                     <i data-lucide="home"></i>
                     <span>Home</span>
                 </a>
+                <a href="#how-it-works" class="nav-link" onclick="scrollToSection('how-it-works')">
+                    <i data-lucide="workflow"></i>
+                    <span>How It Works</span>
+                </a>
+                <a href="#demo-case" class="nav-link" onclick="scrollToSection('demo-case')">
+                    <i data-lucide="eye"></i>
+                    <span>Demo</span>
+                </a>
                 <a href="#documentation" class="nav-link" onclick="scrollToSection('documentation')">
                     <i data-lucide="book-open"></i>
                     <span>Documentation</span>
@@ -75,6 +83,164 @@
                 <p class="hero-subtitle">Blockchain Evidence Management System</p>
                 <p class="hero-description">Secure, transparent, and immutable evidence management for law enforcement
                     and legal professionals.</p>
+            </div>
+        </div>
+
+        <!-- How It Works Section -->
+        <div class="how-it-works-section" id="how-it-works">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i data-lucide="workflow"></i>
+                    </div>
+                    <h2>How It Works</h2>
+                    <p>Simple 4-step process to secure your evidence</p>
+                </div>
+                <div class="steps-container">
+                    <div class="step-item">
+                        <div class="step-number">1</div>
+                        <div class="step-icon">
+                            <i data-lucide="wallet"></i>
+                        </div>
+                        <h3>Connect MetaMask</h3>
+                        <p>Securely connect your MetaMask wallet for blockchain authentication</p>
+                    </div>
+                    <div class="step-arrow">
+                        <i data-lucide="arrow-right"></i>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">2</div>
+                        <div class="step-icon">
+                            <i data-lucide="user-check"></i>
+                        </div>
+                        <h3>Select Your Role</h3>
+                        <p>Choose from 8 specialized roles: Investigator, Prosecutor, Judge, etc.</p>
+                    </div>
+                    <div class="step-arrow">
+                        <i data-lucide="arrow-right"></i>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">3</div>
+                        <div class="step-icon">
+                            <i data-lucide="upload"></i>
+                        </div>
+                        <h3>Add Evidence</h3>
+                        <p>Upload and verify digital evidence with blockchain security</p>
+                    </div>
+                    <div class="step-arrow">
+                        <i data-lucide="arrow-right"></i>
+                    </div>
+                    <div class="step-item">
+                        <div class="step-number">4</div>
+                        <div class="step-icon">
+                            <i data-lucide="file-text"></i>
+                        </div>
+                        <h3>Generate Report</h3>
+                        <p>Create court-ready chain of custody reports instantly</p>
+                    </div>
+                </div>
+                <div class="cta-container">
+                    <button onclick="scrollToSection('login-options')" class="btn btn-primary btn-lg">
+                        <i data-lucide="play"></i>
+                        Start Using EVID-DGC
+                    </button>
+                    <a href="#demo-case" onclick="scrollToSection('demo-case')" class="btn btn-outline btn-lg">
+                        <i data-lucide="eye"></i>
+                        View Demo Case
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Case Section -->
+        <div class="demo-case-section" id="demo-case">
+            <div class="card">
+                <div class="demo-banner">
+                    <i data-lucide="info"></i>
+                    <span>This is a demonstration case - No MetaMask required</span>
+                </div>
+                <div class="card-header">
+                    <div class="card-icon">
+                        <i data-lucide="folder-open"></i>
+                    </div>
+                    <h2>Demo Case: Digital Fraud Investigation</h2>
+                    <p>Case #2024-DF-001 | Status: Under Review</p>
+                </div>
+                <div class="demo-content">
+                    <div class="case-timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i data-lucide="folder-plus"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Case Created</h4>
+                                <p>Jan 15, 2024 09:30 AM | Investigator: Det. Smith</p>
+                                <span class="tx-hash">Tx: 0xa1b2c3d4...ef56</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i data-lucide="upload"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Email Evidence Added</h4>
+                                <p>Jan 15, 2024 10:15 AM | Forensic Analyst: Dr. Johnson</p>
+                                <span class="tx-hash">Tx: 0xb2c3d4e5...f678</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i data-lucide="camera"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Screenshot Evidence</h4>
+                                <p>Jan 16, 2024 02:20 PM | Investigator: Det. Smith</p>
+                                <span class="tx-hash">Tx: 0xc3d4e5f6...789a</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i data-lucide="scale"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Legal Review</h4>
+                                <p>Jan 18, 2024 11:45 AM | Legal: Atty. Williams</p>
+                                <span class="tx-hash">Tx: 0xd4e5f678...9abc</span>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-icon">
+                                <i data-lucide="building"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h4>Court Submission</h4>
+                                <p>Jan 20, 2024 09:00 AM | Court Official: Judge Davis</p>
+                                <span class="tx-hash">Tx: 0xe5f6789a...bcde</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="evidence-summary">
+                        <h3>Evidence Summary</h3>
+                        <div class="evidence-grid">
+                            <div class="evidence-item">
+                                <i data-lucide="mail"></i>
+                                <span>5 Email Messages</span>
+                            </div>
+                            <div class="evidence-item">
+                                <i data-lucide="image"></i>
+                                <span>12 Screenshots</span>
+                            </div>
+                            <div class="evidence-item">
+                                <i data-lucide="file-text"></i>
+                                <span>3 Documents</span>
+                            </div>
+                            <div class="evidence-item">
+                                <i data-lucide="video"></i>
+                                <span>2 Video Files</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -686,6 +852,13 @@
                     <li><a href="#documentation"
                             onclick="event.preventDefault(); scrollToSection('documentation')">Documentation</a></li>
                     <li><a href="#contact" onclick="event.preventDefault(); scrollToSection('contact')">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul>
+                    <li><a href="privacy.html">Privacy Policy</a></li>
+                    <li><a href="data-protection.html">Data Protection</a></li>
                 </ul>
             </div>
         </div>
