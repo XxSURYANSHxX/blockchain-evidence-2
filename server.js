@@ -1729,7 +1729,247 @@ app.get('/api/evidence/:id/blockchain-proof', async (req, res) => {
     }
 });
 
-// Prevent user self-deletion
+// System Health API Endpoints
+
+// Get system health status
+app.get('/api/system/health', async (req, res) => {
+    try {
+        const { userWallet } = req.query;
+        
+        // Verify admin access
+        if (!validateWalletAddress(userWallet)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+        
+        const { data: user } = await supabase
+            .from('users')
+            .select('role')
+            .eq('wallet_address', userWallet)
+            .eq('is_active', true)
+            .single();
+            
+        if (!user || user.role !== 'admin') {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        // Mock system health data
+        const healthData = {
+            blockchain: {
+                status: 'online',
+                network: 'Ethereum Mainnet',
+                chainId: '1',
+                lastBlock: Math.floor(Math.random() * 1000000) + 18000000,
+                lastTransaction: new Date(Date.now() - Math.random() * 3600000).toISOString()
+            },
+            database: {
+                status: 'online',
+                connectionCount: Math.floor(Math.random() * 20) + 5,
+                responseTime: Math.floor(Math.random() * 100) + 50,
+                lastQuery: new Date(Date.now() - Math.random() * 60000).toISOString()
+            },
+            storage: {
+                status: 'online',
+                provider: 'Supabase Storage',
+                used: Math.floor(Math.random() * 1000000000) + 500000000,
+                available: Math.floor(Math.random() * 2000000000) + 1000000000,
+                lastUpload: new Date(Date.now() - Math.random() * 1800000).toISOString()
+            },
+            api: {
+                status: 'online',
+                uptime: Math.floor(Math.random() * 30) + 1,
+                responseTime: Math.floor(Math.random() * 100) + 100,
+                activeSessions: Math.floor(Math.random() * 50) + 10
+            },
+            metrics: {
+                uptime24h: (99.5 + Math.random() * 0.5).toFixed(1),
+                uptime7d: (99.2 + Math.random() * 0.8).toFixed(1),
+                uptime30d: (98.8 + Math.random() * 1.2).toFixed(1),
+                avgResponseTime: Math.floor(Math.random() * 100) + 100,
+                requestsPerMin: Math.floor(Math.random() * 50) + 20,
+                errorRate: (Math.random() * 0.5).toFixed(2)
+            }
+        };
+        
+        res.json({ success: true, health: healthData });
+    } catch (error) {
+        console.error('System health check error:', error);
+        res.status(500).json({ error: 'Failed to get system health' });
+    }
+});
+
+// Role Change Approval API Endpoints
+
+// Create role change request
+app.post('/api/admin/role-change-request', adminLimiter, async (req, res) => {
+    try {
+        const { requestingAdmin, targetUser, currentRole, newRole, reason } = req.body;
+        
+        if (!validateWalletAddress(requestingAdmin) || !validateWalletAddress(targetUser)) {
+            return res.status(400).json({ error: 'Invalid wallet addresses' });
+        }
+        
+        if (requestingAdmin === targetUser) {
+            return res.status(400).json({ error: 'Cannot request role change for yourself' });
+        }
+        
+        const requestId = 'req_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        
+        // Store request (in production, use database)
+        const request = {
+            id: requestId,
+            requestingAdmin,
+            targetUser,
+            currentRole,
+            newRole,
+            reason,
+            status: 'pending',
+            createdAt: new Date().toISOString()
+        };
+        
+        // Log the request
+        await logAdminAction(requestingAdmin, 'role_change_request', targetUser, {
+            requestId,
+            currentRole,
+            newRole,
+            reason
+        });
+        
+        res.json({ success: true, requestId, status: 'pending' });
+    } catch (error) {
+        console.error('Role change request error:', error);
+        res.status(500).json({ error: 'Failed to create role change request' });
+    }
+});
+
+// Activity Feed API Endpoints
+
+// Get activity feed
+app.get('/api/activities', async (req, res) => {
+    try {
+        const { userWallet, limit = 15, filter = 'all' } = req.query;
+        
+        if (!validateWalletAddress(userWallet)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+        
+        // Mock activity data
+        const activities = [
+            {
+                id: 'act_' + Date.now() + '_1',
+                type: 'evidence',
+                title: 'New evidence added in Case #ABC123',
+                description: 'Digital forensic image uploaded by Investigator Johnson',
+                actor: 'Investigator Johnson',
+                timestamp: new Date(Date.now() - Math.random() * 86400000),
+                link: 'cases.html?id=ABC123'
+            },
+            {
+                id: 'act_' + Date.now() + '_2',
+                type: 'case',
+                title: 'Case #DEF456 status updated',
+                description: 'Case moved to Under Review status',
+                actor: 'Legal Professional',
+                timestamp: new Date(Date.now() - Math.random() * 86400000 * 2),
+                link: 'cases.html?id=DEF456'
+            }
+        ];
+        
+        let filteredActivities = activities;
+        if (filter !== 'all') {
+            filteredActivities = activities.filter(activity => activity.type === filter);
+        }
+        
+        res.json({ 
+            success: true, 
+            activities: filteredActivities.slice(0, parseInt(limit))
+        });
+    } catch (error) {
+        console.error('Activity feed error:', error);
+        res.status(500).json({ error: 'Failed to get activities' });
+    }
+});
+
+// Case Summary Export API Endpoints
+
+// Export case summary
+app.post('/api/cases/:id/export-summary', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userWallet, options } = req.body;
+        
+        if (!validateWalletAddress(userWallet)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+        
+        // Verify user has appropriate role
+        const { data: user } = await supabase
+            .from('users')
+            .select('role')
+            .eq('wallet_address', userWallet)
+            .eq('is_active', true)
+            .single();
+            
+        if (!user || user.role === 'public_viewer') {
+            return res.status(403).json({ error: 'Insufficient permissions' });
+        }
+        
+        // Log export action
+        await logAdminAction(userWallet, 'case_summary_export', null, {
+            caseId: id,
+            options
+        });
+        
+        res.json({ success: true, message: 'Case summary export initiated' });
+    } catch (error) {
+        console.error('Case summary export error:', error);
+        res.status(500).json({ error: 'Failed to export case summary' });
+    }
+});
+
+// Hash Manifest Export API Endpoints
+
+// Export hash manifest
+app.post('/api/cases/:id/export-manifest', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userWallet, format = 'json' } = req.body;
+        
+        if (!validateWalletAddress(userWallet)) {
+            return res.status(400).json({ error: 'Invalid wallet address' });
+        }
+        
+        // Mock manifest data
+        const manifest = {
+            case_id: id,
+            case_title: `Case ${id}`,
+            manifest_generated: new Date().toISOString(),
+            evidence_items: [
+                {
+                    evidence_id: 'EVI001',
+                    evidence_name: 'Digital Evidence',
+                    file_hash: 'd4735f3a265e16eee03f59718b9b5d03019c07d8b6c51f90da3a666eec13ab35',
+                    hash_algorithm: 'SHA-256',
+                    blockchain_tx_hash: '0x1234abcd...',
+                    blockchain_timestamp: new Date().toISOString(),
+                    upload_by: userWallet
+                }
+            ]
+        };
+        
+        // Log export action
+        await logAdminAction(userWallet, 'hash_manifest_export', null, {
+            caseId: id,
+            format
+        });
+        
+        res.json({ success: true, manifest });
+    } catch (error) {
+        console.error('Hash manifest export error:', error);
+        res.status(500).json({ error: 'Failed to export hash manifest' });
+    }
+});
+
+
 app.post('/api/user/delete-self', (req, res) => {
     res.status(403).json({
         error: 'Users cannot delete their own accounts. Contact administrator.'

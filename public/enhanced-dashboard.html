@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - EVID-DGC</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+    <nav class="dashboard-nav">
+        <div class="container">
+            <div class="nav-content">
+                <div class="nav-items">
+                    <a href="index.html" class="nav-brand">
+                        <i data-lucide="shield" class="brand-icon"></i>
+                        EVID-DGC
+                    </a>
+                    <span class="nav-separator">|</span>
+                    <span class="nav-title">Dashboard</span>
+                </div>
+                <div class="nav-items">
+                    <div class="user">
+                        <div class="user-role">
+                            <i data-lucide="user"></i>
+                            <span id="userRoleDisplay">Loading...</span>
+                        </div>
+                        <div class="user-wallet" id="currentWallet">Loading...</div>
+                    </div>
+                    <button class="btn btn-outline btn-sm" onclick="logout()">
+                        <i data-lucide="log-out"></i>
+                        Logout
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Role-specific dashboard content will be rendered here -->
+        <div id="roleDashboardContainer"></div>
+
+        <!-- Activity Feed Widget -->
+        <div id="activityFeedContainer"></div>
+
+        <!-- Quick Actions Section -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i data-lucide="zap"></i>
+                </div>
+                <h2>Quick Actions</h2>
+                <p>Common tasks and shortcuts</p>
+            </div>
+            <div class="quick-actions-grid" id="quickActionsGrid">
+                <!-- Quick actions will be populated based on user role -->
+            </div>
+        </div>
+
+        <!-- System Status (Admin only) -->
+        <div id="systemStatusSection" class="card hidden">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i data-lucide="activity"></i>
+                </div>
+                <h2>System Status</h2>
+                <p>Real-time system health monitoring</p>
+            </div>
+            <div class="system-status-grid">
+                <div class="status-item">
+                    <div class="status-icon blockchain">
+                        <i data-lucide="link"></i>
+                    </div>
+                    <div class="status-info">
+                        <h4>Blockchain</h4>
+                        <span class="status-value" id="blockchainStatus">Checking...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-icon database">
+                        <i data-lucide="database"></i>
+                    </div>
+                    <div class="status-info">
+                        <h4>Database</h4>
+                        <span class="status-value" id="databaseStatus">Checking...</span>
+                    </div>
+                </div>
+                <div class="status-item">
+                    <div class="status-icon storage">
+                        <i data-lucide="hard-drive"></i>
+                    </div>
+                    <div class="status-info">
+                        <h4>Storage</h4>
+                        <span class="status-value" id="storageStatus">Checking...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-actions">
+                <a href="system-health.html" class="btn btn-outline">
+                    <i data-lucide="external-link"></i>
+                    View Detailed Status
+                </a>
+            </div>
+        </div>
+
+        <!-- Pending Approvals (Admin only) -->
+        <div id="pendingApprovalsSection" class="hidden">
+            <!-- Pending role change requests will be rendered here -->
+        </div>
+
+        <!-- Recent Cases -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i data-lucide="folder"></i>
+                </div>
+                <h2>Recent Cases</h2>
+                <p>Your recently accessed cases</p>
+            </div>
+            <div class="cases-list" id="recentCasesList">
+                <!-- Cases will be populated here or show empty state -->
+            </div>
+        </div>
+
+        <!-- Evidence Summary -->
+        <div class="card">
+            <div class="card-header">
+                <div class="card-icon">
+                    <i data-lucide="file-text"></i>
+                </div>
+                <h2>Evidence Overview</h2>
+                <p>Summary of evidence items</p>
+            </div>
+            <div class="evidence-stats">
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i data-lucide="upload"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalEvidence">0</h3>
+                        <p>Total Evidence</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i data-lucide="check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="verifiedEvidence">0</h3>
+                        <p>Verified</p>
+                    </div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-icon">
+                        <i data-lucide="clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pendingEvidence">0</h3>
+                        <p>Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include all feature scripts -->
+    <script src="config.js"></script>
+    <script src="blockchain-feedback.js"></script>
+    <script src="case-hash-manifest.js"></script>
+    <script src="role-change-approval.js"></script>
+    <script src="role-landing-system.js"></script>
+    <script src="activity-feed-widget.js"></script>
+    <script src="empty-states-system.js"></script>
+    <script src="case-summary-exporter.js"></script>
+    <script src="app.js"></script>
+
+    <script>
+        // Enhanced Dashboard JavaScript
+        class EnhancedDashboard {
+            constructor() {
+                this.currentUser = null;
+                this.userRole = null;
+                this.initializeDashboard();
+            }
+
+            async initializeDashboard() {
+                try {
+                    // Load user data
+                    await this.loadUserData();
+                    
+                    // Initialize role-specific dashboard
+                    this.initializeRoleSpecificDashboard();
+                    
+                    // Initialize activity feed
+                    this.initializeActivityFeed();
+                    
+                    // Initialize quick actions
+                    this.initializeQuickActions();
+                    
+                    // Load dashboard data
+                    await this.loadDashboardData();
+                    
+                    // Initialize admin features if applicable
+                    if (this.userRole === 'admin') {
+                        this.initializeAdminFeatures();
+                    }
+                    
+                } catch (error) {
+                    console.error('Dashboard initialization failed:', error);
+                    this.showError('Failed to initialize dashboard');
+                }
+            }
+
+            async loadUserData() {
+                const currentUser = localStorage.getItem('currentUser');
+                if (!currentUser) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                let userData;
+                if (currentUser.startsWith('email_')) {
+                    const email = currentUser.replace('email_', '');
+                    userData = JSON.parse(localStorage.getItem('emailUser_' + email) || '{}');
+                } else {
+                    userData = JSON.parse(localStorage.getItem('evidUser_' + currentUser) || '{}');
+                }
+
+                if (!userData.isRegistered) {
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                this.currentUser = currentUser;
+                this.userRole = typeof userData.role === 'number' ? 
+                    this.getRoleNameFromNumber(userData.role) : userData.role;
+
+                // Update UI
+                document.getElementById('userRoleDisplay').textContent = 
+                    this.formatRoleName(this.userRole);
+                document.getElementById('currentWallet').textContent = 
+                    currentUser.length > 20 ? currentUser.substring(0, 8) + '...' : currentUser;
+            }
+
+            initializeRoleSpecificDashboard() {
+                if (window.roleLandingSystem) {
+                    window.roleLandingSystem.renderRoleDashboard('roleDashboardContainer', this.userRole);
+                }
+            }
+
+            initializeActivityFeed() {
+                if (window.activityFeedWidget) {
+                    window.activityFeedWidget.renderWidget('activityFeedContainer');
+                }
+            }
+
+            initializeQuickActions() {
+                const quickActionsGrid = document.getElementById('quickActionsGrid');
+                const actions = this.getQuickActionsForRole(this.userRole);
+                
+                if (actions.length === 0) {
+                    window.emptyStatesSystem.render('quickActionsGrid', 'activities', {
+                        compact: true,
+                        title: 'No Quick Actions',
+                        message: 'Quick actions will appear here based on your role.'
+                    });
+                    return;
+                }
+
+                quickActionsGrid.innerHTML = actions.map(action => `
+                    <div class="quick-action-card" onclick="${action.handler}">
+                        <div class="action-icon" style="color: ${action.color};">
+                            <i data-lucide="${action.icon}"></i>
+                        </div>
+                        <div class="action-info">
+                            <h4>${action.title}</h4>
+                            <p>${action.description}</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                }
+            }
+
+            async loadDashboardData() {
+                try {
+                    // Load recent cases
+                    await this.loadRecentCases();
+                    
+                    // Load evidence statistics
+                    await this.loadEvidenceStats();
+                    
+                } catch (error) {
+                    console.error('Failed to load dashboard data:', error);
+                }
+            }
+
+            async loadRecentCases() {
+                const casesList = document.getElementById('recentCasesList');
+                
+                // Mock recent cases data
+                const recentCases = [
+                    {
+                        id: 'CASE-001',
+                        title: 'Digital Fraud Investigation',
+                        status: 'Active',
+                        lastAccessed: new Date(Date.now() - 86400000),
+                        evidenceCount: 5
+                    },
+                    {
+                        id: 'CASE-002', 
+                        title: 'Cybercrime Analysis',
+                        status: 'Under Review',
+                        lastAccessed: new Date(Date.now() - 172800000),
+                        evidenceCount: 3
+                    }
+                ];
+
+                if (recentCases.length === 0) {
+                    window.emptyStatesSystem.render('recentCasesList', 'cases', { inline: true });
+                    return;
+                }
+
+                casesList.innerHTML = recentCases.map(case_ => `
+                    <div class="case-item" onclick="window.location.href='cases.html?id=${case_.id}'">
+                        <div class="case-info">
+                            <h4>${case_.title}</h4>
+                            <p>Case ID: ${case_.id} • ${case_.evidenceCount} evidence items</p>
+                            <span class="case-status status-${case_.status.toLowerCase().replace(' ', '-')}">${case_.status}</span>
+                        </div>
+                        <div class="case-meta">
+                            <small>Last accessed: ${this.formatTimeAgo(case_.lastAccessed)}</small>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            async loadEvidenceStats() {
+                // Mock evidence statistics
+                const stats = {
+                    total: Math.floor(Math.random() * 100) + 20,
+                    verified: Math.floor(Math.random() * 80) + 15,
+                    pending: Math.floor(Math.random() * 10) + 2
+                };
+
+                document.getElementById('totalEvidence').textContent = stats.total;
+                document.getElementById('verifiedEvidence').textContent = stats.verified;
+                document.getElementById('pendingEvidence').textContent = stats.pending;
+            }
+
+            initializeAdminFeatures() {
+                // Show system status section
+                document.getElementById('systemStatusSection').classList.remove('hidden');
+                
+                // Initialize role change approval system
+                if (window.roleChangeApproval) {
+                    window.roleChangeApproval.renderPendingRequestsPanel(
+                        document.getElementById('pendingApprovalsSection'), 
+                        this.currentUser
+                    );
+                    document.getElementById('pendingApprovalsSection').classList.remove('hidden');
+                }
+                
+                // Load system status
+                this.loadSystemStatus();
+            }
+
+            async loadSystemStatus() {
+                try {
+                    const response = await fetch(`/api/system/health?userWallet=${this.currentUser}`);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        document.getElementById('blockchainStatus').textContent = 
+                            data.health.blockchain.status === 'online' ? 'Online' : 'Offline';
+                        document.getElementById('databaseStatus').textContent = 
+                            data.health.database.status === 'online' ? 'Online' : 'Offline';
+                        document.getElementById('storageStatus').textContent = 
+                            data.health.storage.status === 'online' ? 'Online' : 'Offline';
+                    }
+                } catch (error) {
+                    console.error('Failed to load system status:', error);
+                    document.getElementById('blockchainStatus').textContent = 'Error';
+                    document.getElementById('databaseStatus').textContent = 'Error';
+                    document.getElementById('storageStatus').textContent = 'Error';
+                }
+            }
+
+            getQuickActionsForRole(role) {
+                const actionsMap = {
+                    'investigator': [
+                        { title: 'Create Case', description: 'Start new investigation', icon: 'plus-circle', color: '#10b981', handler: 'createNewCase()' },
+                        { title: 'Upload Evidence', description: 'Add digital evidence', icon: 'upload', color: '#3b82f6', handler: 'uploadEvidence()' },
+                        { title: 'Search Cases', description: 'Find existing cases', icon: 'search', color: '#8b5cf6', handler: 'searchCases()' }
+                    ],
+                    'forensic_analyst': [
+                        { title: 'Analyze Evidence', description: 'Start forensic analysis', icon: 'microscope', color: '#10b981', handler: 'analyzeEvidence()' },
+                        { title: 'Verify Integrity', description: 'Check evidence integrity', icon: 'shield-check', color: '#f59e0b', handler: 'verifyEvidence()' },
+                        { title: 'Generate Report', description: 'Create analysis report', icon: 'file-text', color: '#ef4444', handler: 'generateReport()' }
+                    ],
+                    'admin': [
+                        { title: 'System Health', description: 'Check system status', icon: 'activity', color: '#10b981', handler: 'openSystemHealth()' },
+                        { title: 'User Management', description: 'Manage users', icon: 'users', color: '#3b82f6', handler: 'manageUsers()' },
+                        { title: 'Audit Logs', description: 'View system logs', icon: 'file-search', color: '#8b5cf6', handler: 'viewAuditLogs()' }
+                    ]
+                };
+                
+                return actionsMap[role] || [];
+            }
+
+            getRoleNameFromNumber(roleNumber) {
+                const roleMap = {
+                    1: 'public_viewer',
+                    2: 'investigator', 
+                    3: 'forensic_analyst',
+                    4: 'legal_professional',
+                    5: 'court_official',
+                    6: 'evidence_manager',
+                    7: 'auditor',
+                    8: 'admin'
+                };
+                return roleMap[roleNumber] || 'unknown';
+            }
+
+            formatRoleName(role) {
+                return role.split('_').map(word => 
+                    word.charAt(0).toUpperCase() + word.slice(1)
+                ).join(' ');
+            }
+
+            formatTimeAgo(date) {
+                const now = new Date();
+                const diffMs = now - new Date(date);
+                const diffHours = Math.floor(diffMs / 3600000);
+                const diffDays = Math.floor(diffMs / 86400000);
+                
+                if (diffHours < 24) return `${diffHours}h ago`;
+                return `${diffDays}d ago`;
+            }
+
+            showError(message) {
+                if (window.blockchainFeedback) {
+                    window.blockchainFeedback.showToast('error', `
+                        <i data-lucide="x-circle" style="width: 20px; height: 20px;"></i>
+                        <div>${message}</div>
+                    `);
+                }
+            }
+        }
+
+        // Quick action handlers
+        function createNewCase() {
+            window.location.href = 'cases.html?action=create';
+        }
+
+        function uploadEvidence() {
+            window.location.href = 'evidence-manager.html';
+        }
+
+        function searchCases() {
+            window.location.href = 'cases.html?action=search';
+        }
+
+        function analyzeEvidence() {
+            window.location.href = 'evidence-comparison.html';
+        }
+
+        function verifyEvidence() {
+            window.location.href = 'evidence-verification.html';
+        }
+
+        function generateReport() {
+            window.location.href = 'reports.html?action=generate';
+        }
+
+        function openSystemHealth() {
+            window.location.href = 'system-health.html';
+        }
+
+        function manageUsers() {
+            window.location.href = 'admin.html#users';
+        }
+
+        function viewAuditLogs() {
+            window.location.href = 'audit-trail.html';
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'index.html';
+        }
+
+        // Initialize dashboard when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            window.enhancedDashboard = new EnhancedDashboard();
+            
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
+
+    <style>
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+
+        .quick-action-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-color: #d32f2f;
+        }
+
+        .action-icon {
+            width: 48px;
+            height: 48px;
+            background: #f5f5f5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .action-icon i {
+            width: 24px;
+            height: 24px;
+        }
+
+        .action-info h4 {
+            margin: 0 0 4px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .action-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .system-status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 20px 0;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .status-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .status-icon.blockchain { background: #e3f2fd; color: #1976d2; }
+        .status-icon.database { background: #e8f5e8; color: #388e3c; }
+        .status-icon.storage { background: #fff3e0; color: #f57c00; }
+
+        .status-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .status-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .evidence-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            background: #d32f2f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .stat-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 1.8em;
+            color: #333;
+        }
+
+        .stat-info p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .cases-list {
+            margin-top: 20px;
+        }
+
+        .case-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .case-item:hover {
+            border-color: #d32f2f;
+            background: #fff5f5;
+        }
+
+        .case-info h4 {
+            margin: 0 0 4px 0;
+            color: #333;
+        }
+
+        .case-info p {
+            margin: 0 0 8px 0;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .case-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .status-active { background: #e8f5e8; color: #2e7d32; }
+        .status-under-review { background: #fff3e0; color: #f57c00; }
+        .status-closed { background: #f5f5f5; color: #666; }
+
+        .case-meta small {
+            color: #999;
+            font-size: 0.8em;
+        }
+    </style>
+</body>
+</html>
