@@ -7,6 +7,7 @@
     <title>Analyst | EVID-DGC</title>
     <link rel="stylesheet" href="styles.css">
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script src="navbar.js"></script>
     <style>
         .analyst-hero {
             background: linear-gradient(135deg, #7c3aed, #a855f7);
@@ -121,30 +122,7 @@
 </head>
 
 <body>
-    <!-- Navigation -->
-  <header class="header-nav">
-        <div class="navbar-container">
-            <div class="nav-brand">
-                <i data-lucide="shield-check" class="brand-icon"></i>
-                <span>EVID-DGC</span>
-            </div>
-            <button class="menu-toggle" id="menuToggle">
-                <i data-lucide="menu" class="hamburger-icon"></i>
-            </button>
-            <div class="navbar-right" >
-                <nav class="nav-menu" id="navMenu">
-                    <div class="user" >
-                     <span class="user-role" id="userRole">🔬 Forensic Analyst </span>
-                    <span class="user-wallet" id="userWallet">Loading...</span>
-                    </div>
-                    <button class="nav-login-btn" onclick="logout()">
-                        <i data-lucide="log-out"></i>
-                        <span>logout</span>
-                    </button>
-                </div>
-            </nav>
-        </div>
-    </header>
+    <!-- Navbar will be injected by navbar.js -->
 
     <!-- Hero Section -->
     <div class="analyst-hero">
