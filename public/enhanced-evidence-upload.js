@@ -37,7 +37,7 @@ class EvidenceUploader {
 
         // Add file validation on change
         fileInput.addEventListener('change', (e) => this.validateFile(e.target.files[0]));
-        
+
         // Add drag and drop
         this.setupDragAndDrop(fileInput);
     }
@@ -138,7 +138,7 @@ class EvidenceUploader {
         // Check file size
         const formatInfo = this.allowedFormats[file.type];
         const maxSizeForType = formatInfo.maxSize * 1024 * 1024; // Convert MB to bytes
-        
+
         if (file.size > maxSizeForType) {
             this.showError(`File too large. ${formatInfo.ext} files must be under ${formatInfo.maxSize}MB. Your file is ${this.formatFileSize(file.size)}.`);
             this.clearFileInput();
@@ -187,7 +187,7 @@ class EvidenceUploader {
     async uploadWithProgress(file, formData, onProgress) {
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
-            
+
             xhr.upload.addEventListener('progress', (e) => {
                 if (e.lengthComputable) {
                     const percentComplete = (e.loaded / e.total) * 100;
@@ -228,7 +228,7 @@ class EvidenceUploader {
         if (progressFill) progressFill.style.width = `${percentage}%`;
         if (progressPercentage) progressPercentage.textContent = `${Math.round(percentage)}%`;
         if (progressStatus) progressStatus.textContent = status;
-        
+
         if (uploadSpeed && this.uploadStartTime) {
             const elapsed = (Date.now() - this.uploadStartTime) / 1000;
             const speed = loaded / elapsed;
@@ -239,7 +239,7 @@ class EvidenceUploader {
     async handleUpload(formData, file) {
         this.uploadStartTime = Date.now();
         this.showProgress(true);
-        
+
         // Update file name in progress
         const fileNameSpan = document.querySelector('.upload-details .file-name');
         if (fileNameSpan) fileNameSpan.textContent = file.name;
@@ -252,24 +252,37 @@ class EvidenceUploader {
             this.updateProgress(10, 0, file.size, 'Validating file...');
             await this.delay(300);
 
-            this.updateProgress(20, 0, file.size, 'Calculating hash...');
+            this.updateProgress(20, 0, file.size, 'Calculating SHA-256 hash...');
             await this.delay(800);
 
-            this.updateProgress(30, 0, file.size, 'Uploading to server...');
+            this.updateProgress(30, 0, file.size, 'Uploading to server & IPFS...');
 
             // Actual upload with progress
             const result = await this.uploadWithProgress(file, formData, (percentage, loaded, total) => {
-                const adjustedPercentage = 30 + (percentage * 0.6); // 30-90% for upload
-                this.updateProgress(adjustedPercentage, loaded, total, 'Uploading...');
+                const adjustedPercentage = 30 + (percentage * 0.5); // 30-80% for upload
+                this.updateProgress(adjustedPercentage, loaded, total, 'Uploading & Pinning to IPFS...');
             });
 
-            this.updateProgress(90, file.size, file.size, 'Storing to blockchain...');
+            this.updateProgress(90, file.size, file.size, 'Finalizing blockchain record...');
             await this.delay(1000);
 
             this.updateProgress(100, file.size, file.size, 'Upload complete!');
             await this.delay(500);
 
-            this.showSuccess('🎉 Evidence uploaded successfully and stored on blockchain!');
+            let successMsg = '🎉 Evidence uploaded successfully!';
+            if (result.evidence && result.evidence.ipfs_cid) {
+                successMsg += ` IPFS CID: ${result.evidence.ipfs_cid.substring(0, 15)}...`;
+            }
+            this.showSuccess(successMsg);
+
+            // Show IPFS details in a modal or alert if possible, or just log for now
+            if (result.evidence && result.evidence.ipfs_cid) {
+                console.log('IPFS Upload Result:', result.evidence);
+                // Optional: Trigger a custom event or update UI to show "View on IPFS" link immediately
+                const event = new CustomEvent('evidenceUploaded', { detail: result.evidence });
+                document.dispatchEvent(event);
+            }
+
             return result;
 
         } catch (error) {
@@ -336,7 +349,7 @@ class EvidenceUploader {
         `;
 
         document.body.appendChild(toast);
-        
+
         // Auto remove after 5 seconds
         setTimeout(() => {
             if (toast.parentNode) {

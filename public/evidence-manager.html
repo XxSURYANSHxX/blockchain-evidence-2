@@ -68,7 +68,8 @@
                         <label for="evidenceFile">📁 Evidence File *</label>
                         <input type="file" id="evidenceFile" class="form-control" required>
                         <div class="file-format-info">
-                            <strong>Supported formats:</strong> PDF, JPG, PNG, GIF, MP4, AVI, MOV, MP3, WAV, M4A, DOC, DOCX, XLS, XLSX, TXT, ZIP, RAR<br>
+                            <strong>Supported formats:</strong> PDF, JPG, PNG, GIF, MP4, AVI, MOV, MP3, WAV, M4A, DOC,
+                            DOCX, XLS, XLSX, TXT, ZIP, RAR<br>
                             <strong>Maximum size:</strong> 100MB (varies by format)
                         </div>
                     </div>
@@ -287,25 +288,33 @@
                 // Use enhanced uploader for progress tracking
                 const result = await evidenceUploader.handleUpload(formData, file);
 
-                // Calculate file hash
-                const fileHash = await calculateFileHash(file);
+                // Use the evidence data returned from the server (which includes IPFS details)
+                // If server didn't return complete object, fall back to local construction but include IPFS
+                let evidenceData = result.evidence;
 
-                // Create evidence metadata
-                const evidenceData = {
-                    id: 'EVD-' + Date.now(),
-                    caseId: document.getElementById('caseId').value,
-                    type: document.getElementById('evidenceType').value,
-                    description: document.getElementById('description').value,
-                    location: document.getElementById('location').value,
-                    collectionDate: document.getElementById('collectionDate').value,
-                    fileName: file.name,
-                    fileSize: file.size,
-                    fileHash: fileHash,
-                    uploadedBy: currentUser.wallet_address,
-                    uploadedAt: new Date().toISOString(),
-                    status: 'uploaded',
-                    blockchainTx: null
-                };
+                if (!evidenceData) {
+                    // Fallback if server response structure is different
+                    const fileHash = await calculateFileHash(file);
+                    evidenceData = {
+                        id: 'EVD-' + Date.now(),
+                        caseId: document.getElementById('caseId').value,
+                        type: document.getElementById('evidenceType').value,
+                        description: document.getElementById('description').value,
+                        location: document.getElementById('location').value,
+                        collectionDate: document.getElementById('collectionDate').value,
+                        fileName: file.name,
+                        fileSize: file.size,
+                        fileHash: fileHash,
+                        uploadedBy: currentUser.wallet_address,
+                        uploadedAt: new Date().toISOString(),
+                        status: 'uploaded',
+                        blockchainTx: null,
+                        ipfs_cid: result.ipfs_cid || null
+                    };
+                } else {
+                    // Ensure local fields like blockchainTx are preserved if we are mocking them
+                    evidenceData.blockchainTx = null;
+                }
 
                 // Store to blockchain (mock implementation)
                 try {
@@ -392,21 +401,25 @@
                 <div class="evidence-card" onclick="viewEvidence('${item.id}')">
                     <div class="evidence-header">
                         <h3>${item.fileName}</h3>
-                        <span class="badge badge-${getStatusClass(item.status)}">${item.status}</span>
+                        <div class="status-badges">
+                            <span class="badge badge-${getStatusClass(item.status)}">${item.status}</span>
+                            ${item.ipfs_cid ? '<span class="badge badge-info" title="Pinned to IPFS">📦 IPFS</span>' : ''}
+                        </div>
                     </div>
                     <div class="evidence-meta">
                         <p><strong>Case:</strong> ${item.caseId}</p>
                         <p><strong>Type:</strong> ${item.type}</p>
                         <p><strong>Size:</strong> ${formatFileSize(item.fileSize)}</p>
-                        <p><strong>Hash:</strong> ${item.fileHash.substring(0, 16)}...</p>
+                        <p><strong>Hash:</strong> ${item.fileHash ? item.fileHash.substring(0, 16) : 'N/A'}...</p>
                     </div>
                     <div class="evidence-actions">
                         <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); verifyHash('${item.id}')">
                             🔍 Verify Hash
                         </button>
-                        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); viewChainOfCustody('${item.id}')">
-                            ⛓️ Chain of Custody
-                        </button>
+                        ${item.ipfs_gateway_url ? `
+                        <button class="btn btn-sm btn-outline" onclick="event.stopPropagation(); window.open('${item.ipfs_gateway_url}', '_blank')">
+                            🌐 View IPFS
+                        </button>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -462,9 +475,14 @@
                     </div>
                     <div class="detail-section">
                         <h3>🔐 Cryptographic Hash</h3>
-                        <p><strong>SHA-256:</strong> <code>${evidence.fileHash}</code></p>
+                        <p><strong>SHA-256:</strong> <code>${evidence.fileHash || evidence.hash}</code></p>
+                        <p><strong>IPFS CID:</strong> <code>${evidence.ipfs_cid || 'Not uploaded to IPFS'}</code></p>
                         <p><strong>File Size:</strong> ${formatFileSize(evidence.fileSize)}</p>
                         <p><strong>Blockchain TX:</strong> ${evidence.blockchainTx || 'Pending'}</p>
+                    </div>
+                    <div class="detail-section">
+                        <h3>Actions</h3>
+                        ${evidence.ipfs_gateway_url ? `<a href="${evidence.ipfs_gateway_url}" target="_blank" class="btn btn-sm btn-primary">🌐 View on IPFS Gateway</a>` : ''}
                     </div>
                     <div class="detail-section">
                         <h3>👤 Chain of Custody</h3>

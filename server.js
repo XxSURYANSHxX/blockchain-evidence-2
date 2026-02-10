@@ -4,6 +4,7 @@ const cors = require('cors');
 const multer = require('multer');
 const { createClient } = require('@supabase/supabase-js');
 const rateLimit = require('express-rate-limit');
+const ipfsService = require('./utils/ipfsService');
 const archiver = require('archiver');
 const sharp = require('sharp');
 const { PDFDocument, rgb } = require('pdf-lib');
@@ -16,7 +17,7 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: process.env.NODE_ENV === 'production' 
+        origin: process.env.NODE_ENV === 'production'
             ? (process.env.ALLOWED_ORIGINS?.split(',') || ["https://blockchain-evidence.onrender.com"]).map(url => url.trim())
             : ["http://localhost:3000", "http://127.0.0.1:3000"],
         methods: ["GET", "POST"]
@@ -126,7 +127,7 @@ const notifyMultipleUsers = async (userWallets, title, message, type, data = {})
 
 // 1. CORS MUST BE FIRST
 app.use(cors({
-    origin: process.env.NODE_ENV === 'production' 
+    origin: process.env.NODE_ENV === 'production'
         ? (process.env.ALLOWED_ORIGINS?.split(',') || ['https://blockchain-evidence.onrender.com']).map(url => url.trim())
         : ['http://localhost:3000', 'http://127.0.0.1:3000'],
     credentials: true
@@ -148,7 +149,7 @@ const upload = multer({
         const allowedTypes = [
             'application/pdf',
             'image/jpeg',
-            'image/jpg', 
+            'image/jpg',
             'image/png',
             'image/gif',
             'video/mp4',
@@ -165,7 +166,7 @@ const upload = multer({
             'application/zip',
             'application/x-rar-compressed'
         ];
-        
+
         if (allowedTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
@@ -217,8 +218,8 @@ const allowedRoles = ['public_viewer', 'investigator', 'forensic_analyst', 'lega
 app.get('/api/health', (req, res) => {
     console.log('🏥 Health check endpoint called');
     res.setHeader('Content-Type', 'application/json');
-    res.json({ 
-        status: 'OK', 
+    res.json({
+        status: 'OK',
         timestamp: new Date().toISOString(),
         uptime: process.uptime(),
         environment: process.env.NODE_ENV || 'development',
@@ -235,14 +236,14 @@ const watermarkImage = async (imageBuffer, watermarkText) => {
     try {
         const image = sharp(imageBuffer);
         const { width, height } = await image.metadata();
-        
+
         const watermarkSvg = `
             <svg width="${width}" height="${height}">
                 <rect width="100%" height="100%" fill="none"/>
                 <text x="10" y="${height - 20}" font-family="Arial" font-size="14" fill="rgba(255,255,255,0.8)" stroke="rgba(0,0,0,0.8)" stroke-width="1">${watermarkText}</text>
             </svg>
         `;
-        
+
         return await image
             .composite([{ input: Buffer.from(watermarkSvg), top: 0, left: 0 }])
             .toBuffer();
@@ -256,7 +257,7 @@ const watermarkPDF = async (pdfBuffer, watermarkText) => {
     try {
         const pdfDoc = await PDFDocument.load(pdfBuffer);
         const pages = pdfDoc.getPages();
-        
+
         pages.forEach(page => {
             const { width, height } = page.getSize();
             page.drawText(watermarkText, {
@@ -266,7 +267,7 @@ const watermarkPDF = async (pdfBuffer, watermarkText) => {
                 color: rgb(0.5, 0.5, 0.5),
             });
         });
-        
+
         return await pdfDoc.save();
     } catch (error) {
         console.error('PDF watermarking error:', error);
@@ -546,8 +547,8 @@ app.post('/api/auth/email-login', authLimiter, async (req, res) => {
                 timestamp: new Date().toISOString()
             });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             user: {
                 id: user.id,
                 email: user.email,
@@ -568,7 +569,7 @@ app.post('/api/auth/email-login', authLimiter, async (req, res) => {
 app.post('/api/auth/email-register', authLimiter, async (req, res) => {
     try {
         const { email, password, fullName, role, department, jurisdiction } = req.body;
-        
+
         console.log('Email registration request:', { email, fullName, role, department, jurisdiction });
 
         if (!email || !password || !fullName || !role) {
@@ -635,7 +636,7 @@ app.post('/api/auth/email-register', authLimiter, async (req, res) => {
             .insert({
                 user_id: newUser.email,
                 action: 'email_registration',
-                details: JSON.stringify({ 
+                details: JSON.stringify({
                     role: role,
                     auth_type: 'email',
                     department: department || 'General'
@@ -643,8 +644,8 @@ app.post('/api/auth/email-register', authLimiter, async (req, res) => {
                 timestamp: new Date().toISOString()
             });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Registration successful',
             user: {
                 id: newUser.id,
@@ -666,7 +667,7 @@ app.post('/api/auth/email-register', authLimiter, async (req, res) => {
 app.post('/api/auth/wallet-register', authLimiter, async (req, res) => {
     try {
         const { walletAddress, fullName, role, department, jurisdiction, badgeNumber } = req.body;
-        
+
         console.log('Wallet registration request:', { walletAddress, fullName, role, department, jurisdiction });
 
         if (!validateWalletAddress(walletAddress)) {
@@ -723,7 +724,7 @@ app.post('/api/auth/wallet-register', authLimiter, async (req, res) => {
             .insert({
                 user_id: newUser.wallet_address,
                 action: 'wallet_registration',
-                details: JSON.stringify({ 
+                details: JSON.stringify({
                     role: role,
                     auth_type: 'wallet',
                     department: department || 'General'
@@ -731,8 +732,8 @@ app.post('/api/auth/wallet-register', authLimiter, async (req, res) => {
                 timestamp: new Date().toISOString()
             });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Registration successful',
             user: {
                 id: newUser.id,
@@ -1092,8 +1093,8 @@ app.get('/api/admin/users', adminLimiter, async (req, res) => {
             throw error;
         }
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             ...result
         });
     } catch (error) {
@@ -1147,7 +1148,7 @@ app.post('/api/evidence/upload', upload.single('file'), async (req, res) => {
 
         const maxSize = allowedTypes[file.mimetype];
         if (!maxSize) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: `File type ${file.mimetype} not supported`,
                 supportedTypes: Object.keys(allowedTypes)
             });
@@ -1155,7 +1156,7 @@ app.post('/api/evidence/upload', upload.single('file'), async (req, res) => {
 
         const maxSizeBytes = maxSize * 1024 * 1024;
         if (file.size > maxSizeBytes) {
-            return res.status(400).json({ 
+            return res.status(400).json({
                 error: `File too large. Maximum size for ${file.mimetype} is ${maxSize}MB`,
                 fileSize: file.size,
                 maxSize: maxSizeBytes
@@ -1165,6 +1166,26 @@ app.post('/api/evidence/upload', upload.single('file'), async (req, res) => {
         // Calculate file hash
         const crypto = require('crypto');
         const hash = crypto.createHash('sha256').update(file.buffer).digest('hex');
+
+        // Upload to IPFS (Phase 2 Integration)
+        let ipfsResult = null;
+        let ipfsError = null;
+
+        try {
+            if (ipfsService.isEnabled) {
+                console.log('Uploading to IPFS...');
+                ipfsResult = await ipfsService.uploadToIPFS(file.buffer, file.originalname, {
+                    caseId: sanitizedCaseId,
+                    type: sanitizedType,
+                    uploadedBy
+                });
+                console.log('IPFS Upload successful:', ipfsResult.IpfsHash);
+            }
+        } catch (err) {
+            console.error('IPFS Upload failed:', err);
+            ipfsError = err.message;
+            // Continue with normal upload, but mark IPFS status as failed
+        }
 
         // Create evidence record
         const evidenceData = {
@@ -1180,21 +1201,103 @@ app.post('/api/evidence/upload', upload.single('file'), async (req, res) => {
             hash,
             uploadedBy,
             uploadedAt: new Date().toISOString(),
-            status: 'uploaded'
+            status: 'uploaded',
+            // IPFS Fields
+            ipfs_cid: ipfsResult ? ipfsResult.IpfsHash : null,
+            ipfs_gateway_url: ipfsResult ? ipfsResult.gatewayUrl : null,
+            ipfs_pinned_until: null, // Perpetual pin by default
+            ipfs_status: ipfsResult ? 'pinned' : (ipfsService.isEnabled ? 'failed' : 'pending')
         };
 
-        // Store file (in production, use cloud storage)
-        // For now, just return success with metadata
-        
+        // In a real implementation with a database, you would insert `evidenceData` here.
+        // Since we are mocking the DB insertion in this snippet (based on previous code), 
+        // we'll just return the object. 
+        // However, if there is actual DB logic hidden in "Store file...", we should use it.
+        // Looking at the original code, it just said "Store file..." and sent res.json.
+        // We will maintain that behavior but include the new IPFS fields.
+
         res.json({
             success: true,
             evidence: evidenceData,
-            message: 'Evidence uploaded successfully'
+            message: ipfsResult ? 'Evidence uploaded and pinned to IPFS successfully' : 'Evidence uploaded (IPFS skipped or failed)',
+            ipfs_status: evidenceData.ipfs_status,
+            ipfs_error: ipfsError
         });
 
     } catch (error) {
         console.error('Evidence upload error:', error);
         res.status(500).json({ error: 'Upload failed: ' + error.message });
+    }
+});
+
+// IPFS Status Endpoint
+app.get('/api/ipfs/status', async (req, res) => {
+    const status = await ipfsService.checkHealth();
+    res.json({
+        enabled: ipfsService.isEnabled,
+        upline: status,
+        gateway: ipfsService.gatewayUrl
+    });
+});
+
+// Get IPFS Metadata for Evidence
+app.get('/api/evidence/:id/ipfs', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        // In a real app, query DB. Here we mock or would assume DB query.
+        // check "download" endpoint for DB pattern:
+        // const { data: evidence } = await supabase.from('evidence').eq('id', id).single();
+
+        const { data: evidence, error } = await supabase
+            .from('evidence')
+            .select('ipfs_cid, ipfs_gateway_url, ipfs_status, ipfs_pinned_until')
+            .eq('id', id)
+            .single();
+
+        if (error || !evidence) {
+            return res.status(404).json({ error: 'Evidence not found' });
+        }
+
+        res.json({ success: true, ipfs: evidence });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch IPFS details' });
+    }
+});
+
+// Re-pin Evidence
+app.post('/api/evidence/:id/repin', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userWallet } = req.body;
+
+        if (!validateWalletAddress(userWallet)) { // Assuming validateWalletAddress follows valid scope
+            return res.status(400).json({ error: 'Invalid wallet' });
+        }
+
+        // Fetch evidence to get CID
+        const { data: evidence } = await supabase
+            .from('evidence')
+            .select('ipfs_cid, title')
+            .eq('id', id)
+            .single();
+
+        if (!evidence || !evidence.ipfs_cid) {
+            return res.status(404).json({ error: 'Evidence or CID not found' });
+        }
+
+        const result = await ipfsService.pinContent(evidence.ipfs_cid, evidence.title);
+
+        // Update DB
+        await supabase
+            .from('evidence')
+            .update({ ipfs_status: 'pinned', ipfs_pinned_until: null })
+            .eq('id', id);
+
+        res.json({ success: true, result });
+    } catch (error) {
+        console.error('Repin failed:', error);
+        res.status(500).json({ error: 'Repin failed' });
     }
 });
 
@@ -1238,7 +1341,7 @@ app.post('/api/evidence/:id/download', exportLimiter, async (req, res) => {
 
         // Generate watermark text
         const watermarkText = generateWatermarkText(userWallet, evidence.case_number, new Date());
-        
+
         // For demo purposes, create a mock file buffer
         let fileBuffer;
         let contentType;
@@ -1249,14 +1352,14 @@ app.post('/api/evidence/:id/download', exportLimiter, async (req, res) => {
             fileBuffer = Buffer.from('Mock image data for evidence ' + id);
             contentType = evidence.file_type;
             filename = `evidence_${id}_watermarked.jpg`;
-            
+
             // Apply watermark (in real implementation, you'd get actual file from storage)
             // fileBuffer = await watermarkImage(fileBuffer, watermarkText);
         } else if (evidence.file_type === 'application/pdf') {
             fileBuffer = Buffer.from('Mock PDF data for evidence ' + id);
             contentType = 'application/pdf';
             filename = `evidence_${id}_watermarked.pdf`;
-            
+
             // Apply watermark (in real implementation, you'd get actual file from storage)
             // fileBuffer = await watermarkPDF(fileBuffer, watermarkText);
         } else {
@@ -1279,7 +1382,7 @@ app.post('/api/evidence/:id/download', exportLimiter, async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
         res.setHeader('X-Watermark-Applied', 'true');
         res.setHeader('X-Downloaded-By', userWallet.slice(0, 8) + '...');
-        
+
         res.send(fileBuffer);
     } catch (error) {
         console.error('Evidence download error:', error);
@@ -1368,7 +1471,7 @@ app.post('/api/evidence/bulk-export', exportLimiter, async (req, res) => {
         // Add each evidence file with watermark
         for (const evidence of evidenceItems) {
             const watermarkText = generateWatermarkText(userWallet, evidence.case_number, new Date());
-            
+
             // For demo purposes, create mock file data
             let fileBuffer = Buffer.from(`Mock evidence data for ${evidence.name} (ID: ${evidence.id})`);
             let filename = `${evidence.id}_${evidence.name || 'evidence'}`;
@@ -2202,32 +2305,32 @@ app.post('/api/evidence/comparison-report', async (req, res) => {
 app.get('/api/evidence', async (req, res) => {
     try {
         const { limit = 50, offset = 0, case_id, status, submitted_by } = req.query;
-        
+
         let query = supabase
             .from('evidence')
             .select('*')
             .order('timestamp', { ascending: false })
             .range(offset, offset + limit - 1);
-        
+
         // Apply filters
         if (case_id) {
             query = query.eq('case_id', case_id);
         }
-        
+
         if (status) {
             query = query.eq('status', status);
         }
-        
+
         if (submitted_by) {
             query = query.eq('submitted_by', submitted_by);
         }
-        
+
         const { data: evidence, error } = await query;
-        
+
         if (error) {
             throw error;
         }
-        
+
         // Add mock blockchain data for display
         const enrichedEvidence = evidence.map(item => ({
             ...item,
@@ -2236,9 +2339,9 @@ app.get('/api/evidence', async (req, res) => {
             blockchain_verified: true,
             verification_timestamp: new Date().toISOString()
         }));
-        
-        res.json({ 
-            success: true, 
+
+        res.json({
+            success: true,
             evidence: enrichedEvidence,
             total: evidence.length
         });
@@ -2250,14 +2353,14 @@ app.get('/api/evidence', async (req, res) => {
 
 // Helper functions for mock data
 function generateMockIPFSHash() {
-    return 'Qm' + Array.from({length: 44}, () => 
+    return 'Qm' + Array.from({ length: 44 }, () =>
         'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
-        .charAt(Math.floor(Math.random() * 62))
+            .charAt(Math.floor(Math.random() * 62))
     ).join('');
 }
 
 function generateMockTxHash() {
-    return '0x' + Array.from({length: 64}, () => 
+    return '0x' + Array.from({ length: 64 }, () =>
         '0123456789abcdef'.charAt(Math.floor(Math.random() * 16))
     ).join('');
 }
@@ -2301,7 +2404,7 @@ app.get('/api/evidence/:id/verify', async (req, res) => {
 
         // Simulate hash verification
         const valid = true; // In real implementation, verify against blockchain
-        
+
         res.json({ valid, hash: evidence.hash });
     } catch (error) {
         console.error('Verify evidence error:', error);
@@ -2379,11 +2482,11 @@ app.get('/api/case-statuses', async (req, res) => {
 // Get cases with enhanced filtering
 app.get('/api/cases/enhanced', async (req, res) => {
     try {
-        const { 
-            status, 
-            priority, 
-            assignedTo, 
-            caseType, 
+        const {
+            status,
+            priority,
+            assignedTo,
+            caseType,
             jurisdiction,
             dateFrom,
             dateTo,
@@ -2416,31 +2519,31 @@ app.get('/api/cases/enhanced', async (req, res) => {
         if (status) {
             query = query.eq('case_statuses.status_code', status);
         }
-        
+
         if (priority) {
             query = query.eq('priority_level', priority);
         }
-        
+
         if (assignedTo) {
             query = query.or(`assigned_investigator.eq.${assignedTo},assigned_prosecutor.eq.${assignedTo},assigned_judge.eq.${assignedTo}`);
         }
-        
+
         if (caseType) {
             query = query.eq('case_type', caseType);
         }
-        
+
         if (jurisdiction) {
             query = query.eq('jurisdiction', jurisdiction);
         }
-        
+
         if (dateFrom) {
             query = query.gte('created_date', dateFrom);
         }
-        
+
         if (dateTo) {
             query = query.lte('created_date', dateTo);
         }
-        
+
         if (search) {
             query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%,case_number.ilike.%${search}%`);
         }
@@ -2655,7 +2758,7 @@ app.post('/api/cases/:id/status', async (req, res) => {
             .single();
 
         if (transitionError || !transition) {
-            return res.status(403).json({ 
+            return res.status(403).json({
                 error: `Status transition not allowed for role: ${user.role}`,
                 currentStatus: currentCase.case_statuses.status_code,
                 requestedStatus: newStatusCode
@@ -2709,8 +2812,8 @@ app.post('/api/cases/:id/status', async (req, res) => {
                 })
             });
 
-        res.json({ 
-            success: true, 
+        res.json({
+            success: true,
             message: 'Case status updated successfully',
             newStatus: newStatusCode
         });
@@ -2881,7 +2984,7 @@ app.get('/api/cases/statistics', async (req, res) => {
 
         let dateFilter = '';
         const now = new Date();
-        
+
         switch (timeframe) {
             case '7d':
                 dateFilter = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
@@ -2992,7 +3095,7 @@ app.get('/api/cases/export', async (req, res) => {
 
         // Generate CSV
         const csvHeaders = 'Case Number,Title,Status,Priority,Type,Jurisdiction,Created Date,Created By\n';
-        const csvRows = cases.map(c => 
+        const csvRows = cases.map(c =>
             `"${c.case_number || ''}","${c.title}","${c.case_statuses?.status_name || ''}","${c.priority_level || 3}","${c.case_type || ''}","${c.jurisdiction || ''}","${new Date(c.created_date).toLocaleDateString()}","${c.created_by.substring(0, 8)}..."`
         ).join('\n');
 
@@ -3033,7 +3136,7 @@ async function createStatusChangeNotification(caseId, fromStatusId, toStatusId, 
         if (!caseData || !toStatus) return;
 
         const message = `Case "${caseData.title}" (${caseData.case_number}) status changed to ${toStatus.status_name}`;
-        
+
         // Notify assigned users
         const assignedUsers = [
             caseData.assigned_investigator,

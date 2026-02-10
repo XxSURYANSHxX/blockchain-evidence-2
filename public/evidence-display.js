@@ -69,4 +69,406 @@ class EvidenceDisplay {
 
     renderEvidenceList(evidenceList) {
         const container = document.getElementById('evidenceListContainer');
-        if (!container) return;\n\n        if (!evidenceList || evidenceList.length === 0) {\n            container.innerHTML = `\n                <div class=\"empty-state\">\n                    <div class=\"empty-icon\">\n                        <i data-lucide=\"file-x\"></i>\n                    </div>\n                    <h3>No Evidence Found</h3>\n                    <p>No evidence has been uploaded yet.</p>\n                </div>\n            `;\n            return;\n        }\n\n        const evidenceHTML = evidenceList.map(evidence => this.createEvidenceCard(evidence)).join('');\n        container.innerHTML = `\n            <div class=\"evidence-grid\">\n                ${evidenceHTML}\n            </div>\n        `;\n\n        // Initialize Lucide icons\n        if (typeof lucide !== 'undefined') {\n            lucide.createIcons();\n        }\n    }\n\n    createEvidenceCard(evidence) {\n        const uploadDate = new Date(evidence.timestamp || evidence.created_at).toLocaleString();\n        const fileSize = this.formatFileSize(evidence.file_size);\n        const shortHash = evidence.hash ? evidence.hash.substring(0, 16) + '...' : 'N/A';\n        const ipfsHash = evidence.ipfs_hash || this.generateMockIPFSHash();\n        const blockchainTx = evidence.blockchain_tx || this.generateMockTxHash();\n        \n        return `\n            <div class=\"evidence-card\" data-evidence-id=\"${evidence.id}\">\n                <div class=\"evidence-header\">\n                    <div class=\"evidence-type-icon\">\n                        ${this.getFileTypeIcon(evidence.type || evidence.file_name)}\n                    </div>\n                    <div class=\"evidence-title\">\n                        <h4>${evidence.title || evidence.file_name}</h4>\n                        <span class=\"evidence-id\">ID: ${evidence.id}</span>\n                    </div>\n                    <div class=\"evidence-status\">\n                        <span class=\"status-badge status-${evidence.status || 'verified'}\">\n                            ${(evidence.status || 'verified').toUpperCase()}\n                        </span>\n                    </div>\n                </div>\n                \n                <div class=\"evidence-metadata\">\n                    <div class=\"metadata-row\">\n                        <span class=\"metadata-label\">Case ID:</span>\n                        <span class=\"metadata-value\">${evidence.case_id || 'N/A'}</span>\n                    </div>\n                    <div class=\"metadata-row\">\n                        <span class=\"metadata-label\">File Size:</span>\n                        <span class=\"metadata-value\">${fileSize}</span>\n                    </div>\n                    <div class=\"metadata-row\">\n                        <span class=\"metadata-label\">Uploaded:</span>\n                        <span class=\"metadata-value\">${uploadDate}</span>\n                    </div>\n                    <div class=\"metadata-row\">\n                        <span class=\"metadata-label\">Submitted By:</span>\n                        <span class=\"metadata-value\">${this.formatWalletAddress(evidence.submitted_by)}</span>\n                    </div>\n                </div>\n                \n                <div class=\"evidence-hashes\">\n                    <div class=\"hash-section\">\n                        <div class=\"hash-label\">\n                            <i data-lucide=\"hash\"></i>\n                            <span>File Hash (SHA-256)</span>\n                        </div>\n                        <div class=\"hash-value\" title=\"${evidence.hash}\">\n                            <code>${shortHash}</code>\n                            <button class=\"copy-btn\" onclick=\"copyToClipboard('${evidence.hash}')\">\n                                <i data-lucide=\"copy\"></i>\n                            </button>\n                        </div>\n                    </div>\n                    \n                    <div class=\"hash-section\">\n                        <div class=\"hash-label\">\n                            <i data-lucide=\"database\"></i>\n                            <span>IPFS Hash</span>\n                        </div>\n                        <div class=\"hash-value\" title=\"${ipfsHash}\">\n                            <code>${ipfsHash.substring(0, 16)}...</code>\n                            <button class=\"copy-btn\" onclick=\"copyToClipboard('${ipfsHash}')\">\n                                <i data-lucide=\"copy\"></i>\n                            </button>\n                        </div>\n                    </div>\n                    \n                    <div class=\"hash-section\">\n                        <div class=\"hash-label\">\n                            <i data-lucide=\"link\"></i>\n                            <span>Blockchain TX</span>\n                        </div>\n                        <div class=\"hash-value\" title=\"${blockchainTx}\">\n                            <code>${blockchainTx.substring(0, 16)}...</code>\n                            <button class=\"copy-btn\" onclick=\"copyToClipboard('${blockchainTx}')\">\n                                <i data-lucide=\"copy\"></i>\n                            </button>\n                        </div>\n                    </div>\n                </div>\n                \n                <div class=\"evidence-actions\">\n                    <button class=\"btn btn-sm btn-outline\" onclick=\"evidenceDisplay.showEvidenceDetails('${evidence.id}')\">\n                        <i data-lucide=\"eye\"></i>\n                        View Details\n                    </button>\n                    ${this.canDownload() ? `\n                        <button class=\"btn btn-sm btn-primary\" onclick=\"evidenceDisplay.downloadEvidence('${evidence.id}')\">\n                            <i data-lucide=\"download\"></i>\n                            Download\n                        </button>\n                    ` : ''}\n                    <button class=\"btn btn-sm btn-outline\" onclick=\"evidenceDisplay.verifyEvidence('${evidence.id}')\">\n                        <i data-lucide=\"shield-check\"></i>\n                        Verify\n                    </button>\n                </div>\n            </div>\n        `;\n    }\n\n    getFileTypeIcon(fileName) {\n        const extension = fileName.split('.').pop().toLowerCase();\n        const iconMap = {\n            'pdf': '<i data-lucide=\"file-text\" style=\"color: #ef4444;\"></i>',\n            'jpg': '<i data-lucide=\"image\" style=\"color: #10b981;\"></i>',\n            'jpeg': '<i data-lucide=\"image\" style=\"color: #10b981;\"></i>',\n            'png': '<i data-lucide=\"image\" style=\"color: #10b981;\"></i>',\n            'gif': '<i data-lucide=\"image\" style=\"color: #10b981;\"></i>',\n            'mp4': '<i data-lucide=\"video\" style=\"color: #8b5cf6;\"></i>',\n            'avi': '<i data-lucide=\"video\" style=\"color: #8b5cf6;\"></i>',\n            'mov': '<i data-lucide=\"video\" style=\"color: #8b5cf6;\"></i>',\n            'mp3': '<i data-lucide=\"music\" style=\"color: #f59e0b;\"></i>',\n            'wav': '<i data-lucide=\"music\" style=\"color: #f59e0b;\"></i>',\n            'doc': '<i data-lucide=\"file-text\" style=\"color: #3b82f6;\"></i>',\n            'docx': '<i data-lucide=\"file-text\" style=\"color: #3b82f6;\"></i>',\n            'zip': '<i data-lucide=\"archive\" style=\"color: #6b7280;\"></i>',\n            'rar': '<i data-lucide=\"archive\" style=\"color: #6b7280;\"></i>'\n        };\n        return iconMap[extension] || '<i data-lucide=\"file\" style=\"color: #6b7280;\"></i>';\n    }\n\n    formatFileSize(bytes) {\n        if (!bytes) return 'Unknown';\n        const sizes = ['Bytes', 'KB', 'MB', 'GB'];\n        if (bytes === 0) return '0 Bytes';\n        const i = Math.floor(Math.log(bytes) / Math.log(1024));\n        return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];\n    }\n\n    formatWalletAddress(address) {\n        if (!address) return 'Unknown';\n        if (address.length > 20) {\n            return address.substring(0, 6) + '...' + address.substring(address.length - 4);\n        }\n        return address;\n    }\n\n    generateMockIPFSHash() {\n        return 'Qm' + Array.from({length: 44}, () => \n            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'\n            .charAt(Math.floor(Math.random() * 62))\n        ).join('');\n    }\n\n    generateMockTxHash() {\n        return '0x' + Array.from({length: 64}, () => \n            '0123456789abcdef'.charAt(Math.floor(Math.random() * 16))\n        ).join('');\n    }\n\n    canDownload() {\n        if (!this.currentUser) return false;\n        const role = this.currentUser.role;\n        return role !== 'public_viewer';\n    }\n\n    async showEvidenceDetails(evidenceId) {\n        try {\n            const response = await fetch(`/api/evidence/${evidenceId}`);\n            if (response.ok) {\n                const evidence = await response.json();\n                this.displayEvidenceModal(evidence);\n            } else {\n                showAlert('Failed to load evidence details', 'error');\n            }\n        } catch (error) {\n            console.error('Error loading evidence details:', error);\n            showAlert('Error loading evidence details', 'error');\n        }\n    }\n\n    displayEvidenceModal(evidence) {\n        const modal = document.createElement('div');\n        modal.className = 'modal active';\n        modal.innerHTML = `\n            <div class=\"modal-content evidence-modal\">\n                <div class=\"modal-header\">\n                    <h3>Evidence Details</h3>\n                    <button class=\"modal-close\" onclick=\"this.closest('.modal').remove()\">\n                        <i data-lucide=\"x\"></i>\n                    </button>\n                </div>\n                <div class=\"modal-body\">\n                    <div class=\"evidence-details-grid\">\n                        <div class=\"detail-section\">\n                            <h4>Basic Information</h4>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">Title:</span>\n                                <span class=\"detail-value\">${evidence.title || evidence.file_name}</span>\n                            </div>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">Description:</span>\n                                <span class=\"detail-value\">${evidence.description || 'No description'}</span>\n                            </div>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">Case ID:</span>\n                                <span class=\"detail-value\">${evidence.case_id}</span>\n                            </div>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">Type:</span>\n                                <span class=\"detail-value\">${evidence.type || 'Unknown'}</span>\n                            </div>\n                        </div>\n                        \n                        <div class=\"detail-section\">\n                            <h4>File Information</h4>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">File Name:</span>\n                                <span class=\"detail-value\">${evidence.file_name}</span>\n                            </div>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">File Size:</span>\n                                <span class=\"detail-value\">${this.formatFileSize(evidence.file_size)}</span>\n                            </div>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">Upload Date:</span>\n                                <span class=\"detail-value\">${new Date(evidence.timestamp).toLocaleString()}</span>\n                            </div>\n                            <div class=\"detail-row\">\n                                <span class=\"detail-label\">Submitted By:</span>\n                                <span class=\"detail-value\">${evidence.submitted_by}</span>\n                            </div>\n                        </div>\n                        \n                        <div class=\"detail-section full-width\">\n                            <h4>Blockchain & Hash Information</h4>\n                            <div class=\"hash-details\">\n                                <div class=\"hash-detail-row\">\n                                    <span class=\"hash-detail-label\">SHA-256 Hash:</span>\n                                    <div class=\"hash-detail-value\">\n                                        <code>${evidence.hash}</code>\n                                        <button class=\"copy-btn\" onclick=\"copyToClipboard('${evidence.hash}')\">\n                                            <i data-lucide=\"copy\"></i>\n                                        </button>\n                                    </div>\n                                </div>\n                                <div class=\"hash-detail-row\">\n                                    <span class=\"hash-detail-label\">IPFS Hash:</span>\n                                    <div class=\"hash-detail-value\">\n                                        <code>${evidence.ipfs_hash || this.generateMockIPFSHash()}</code>\n                                        <button class=\"copy-btn\" onclick=\"copyToClipboard('${evidence.ipfs_hash || this.generateMockIPFSHash()}')\">\n                                            <i data-lucide=\"copy\"></i>\n                                        </button>\n                                    </div>\n                                </div>\n                                <div class=\"hash-detail-row\">\n                                    <span class=\"hash-detail-label\">Blockchain TX:</span>\n                                    <div class=\"hash-detail-value\">\n                                        <code>${evidence.blockchain_tx || this.generateMockTxHash()}</code>\n                                        <button class=\"copy-btn\" onclick=\"copyToClipboard('${evidence.blockchain_tx || this.generateMockTxHash()}')\">\n                                            <i data-lucide=\"copy\"></i>\n                                        </button>\n                                    </div>\n                                </div>\n                            </div>\n                        </div>\n                    </div>\n                </div>\n                <div class=\"modal-actions\">\n                    ${this.canDownload() ? `\n                        <button class=\"btn btn-primary\" onclick=\"evidenceDisplay.downloadEvidence('${evidence.id}')\">\n                            <i data-lucide=\"download\"></i>\n                            Download Evidence\n                        </button>\n                    ` : ''}\n                    <button class=\"btn btn-outline\" onclick=\"evidenceDisplay.verifyEvidence('${evidence.id}')\">\n                        <i data-lucide=\"shield-check\"></i>\n                        Verify Integrity\n                    </button>\n                    <button class=\"btn btn-outline\" onclick=\"this.closest('.modal').remove()\">\n                        Close\n                    </button>\n                </div>\n            </div>\n        `;\n        \n        document.body.appendChild(modal);\n        \n        // Initialize Lucide icons\n        if (typeof lucide !== 'undefined') {\n            lucide.createIcons();\n        }\n    }\n\n    async downloadEvidence(evidenceId) {\n        if (!this.canDownload()) {\n            showAlert('You do not have permission to download evidence', 'error');\n            return;\n        }\n\n        try {\n            const userWallet = this.currentUser.wallet_address || this.currentUser.email;\n            const response = await fetch(`/api/evidence/${evidenceId}/download`, {\n                method: 'POST',\n                headers: {\n                    'Content-Type': 'application/json'\n                },\n                body: JSON.stringify({ userWallet })\n            });\n\n            if (response.ok) {\n                const blob = await response.blob();\n                const url = window.URL.createObjectURL(blob);\n                const a = document.createElement('a');\n                a.href = url;\n                a.download = `evidence_${evidenceId}_watermarked`;\n                document.body.appendChild(a);\n                a.click();\n                window.URL.revokeObjectURL(url);\n                document.body.removeChild(a);\n                \n                showAlert('Evidence downloaded successfully', 'success');\n            } else {\n                const error = await response.json();\n                showAlert(error.error || 'Download failed', 'error');\n            }\n        } catch (error) {\n            console.error('Download error:', error);\n            showAlert('Download failed', 'error');\n        }\n    }\n\n    async verifyEvidence(evidenceId) {\n        try {\n            const response = await fetch(`/api/evidence/${evidenceId}/verify`);\n            if (response.ok) {\n                const result = await response.json();\n                if (result.valid) {\n                    showAlert('Evidence integrity verified successfully', 'success');\n                } else {\n                    showAlert('Evidence integrity verification failed', 'error');\n                }\n            } else {\n                showAlert('Verification failed', 'error');\n            }\n        } catch (error) {\n            console.error('Verification error:', error);\n            showAlert('Verification failed', 'error');\n        }\n    }\n}\n\n// Copy to clipboard function\nfunction copyToClipboard(text) {\n    navigator.clipboard.writeText(text).then(() => {\n        showAlert('Copied to clipboard', 'success');\n    }).catch(err => {\n        console.error('Failed to copy:', err);\n        showAlert('Failed to copy to clipboard', 'error');\n    });\n}\n\n// Initialize evidence display system\nlet evidenceDisplay;\ndocument.addEventListener('DOMContentLoaded', function() {\n    evidenceDisplay = new EvidenceDisplay();\n});\n\n// Export for use in other modules\nif (typeof window !== 'undefined') {\n    window.EvidenceDisplay = EvidenceDisplay;\n    window.copyToClipboard = copyToClipboard;\n}
+        if (!container) return;
+
+        if (!evidenceList || evidenceList.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i data-lucide="file-x"></i>
+                    </div>
+                    <h3>No Evidence Found</h3>
+                    <p>No evidence has been uploaded yet.</p>
+                </div>
+            `;
+            return;
+        }
+
+        const evidenceHTML = evidenceList.map(evidence => this.createEvidenceCard(evidence)).join('');
+        container.innerHTML = `
+            <div class="evidence-grid">
+                ${evidenceHTML}
+            </div>
+        `;
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    createEvidenceCard(evidence) {
+        const uploadDate = new Date(evidence.timestamp || evidence.created_at).toLocaleString();
+        const fileSize = this.formatFileSize(evidence.file_size);
+        const shortHash = evidence.hash ? evidence.hash.substring(0, 16) + '...' : 'N/A';
+        const ipfsHash = evidence.ipfs_cid || evidence.ipfs_hash || this.generateMockIPFSHash();
+        const blockchainTx = evidence.blockchain_tx || this.generateMockTxHash();
+
+        return `
+            <div class="evidence-card" data-evidence-id="${evidence.id}">
+                <div class="evidence-header">
+                    <div class="evidence-type-icon">
+                        ${this.getFileTypeIcon(evidence.type || evidence.file_name)}
+                    </div>
+                    <div class="evidence-title">
+                        <h4>${evidence.title || evidence.file_name}</h4>
+                        <span class="evidence-id">ID: ${evidence.id}</span>
+                    </div>
+                    <div class="evidence-status">
+                        <span class="status-badge status-${evidence.status || 'verified'}">
+                            ${(evidence.status || 'verified').toUpperCase()}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="evidence-metadata">
+                    <div class="metadata-row">
+                        <span class="metadata-label">Case ID:</span>
+                        <span class="metadata-value">${evidence.case_id || 'N/A'}</span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="metadata-label">File Size:</span>
+                        <span class="metadata-value">${fileSize}</span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="metadata-label">Uploaded:</span>
+                        <span class="metadata-value">${uploadDate}</span>
+                    </div>
+                    <div class="metadata-row">
+                        <span class="metadata-label">Submitted By:</span>
+                        <span class="metadata-value">${this.formatWalletAddress(evidence.submitted_by)}</span>
+                    </div>
+                </div>
+                
+                <div class="evidence-hashes">
+                    <div class="hash-section">
+                        <div class="hash-label">
+                            <i data-lucide="hash"></i>
+                            <span>File Hash (SHA-256)</span>
+                        </div>
+                        <div class="hash-value" title="${evidence.hash}">
+                            <code>${shortHash}</code>
+                            <button class="copy-btn" onclick="copyToClipboard('${evidence.hash}')">
+                                <i data-lucide="copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="hash-section">
+                        <div class="hash-label">
+                            <i data-lucide="database"></i>
+                            <span>IPFS CID</span>
+                        </div>
+                        <div class="hash-value" title="${evidence.ipfs_cid || evidence.ipfs_hash || this.generateMockIPFSHash()}">
+                            <code>${(evidence.ipfs_cid || evidence.ipfs_hash || this.generateMockIPFSHash()).substring(0, 16)}...</code>
+                            <button class="copy-btn" onclick="copyToClipboard('${evidence.ipfs_cid || evidence.ipfs_hash || this.generateMockIPFSHash()}')">
+                                <i data-lucide="copy"></i>
+                            </button>
+                            ${(evidence.ipfs_gateway_url || evidence.ipfs_cid) ? `
+                            <a href="${evidence.ipfs_gateway_url || 'https://gateway.pinata.cloud/ipfs/' + (evidence.ipfs_cid)}" target="_blank" class="btn-icon" title="View on IPFS" style="margin-left: 5px;">
+                                <i data-lucide="external-link"></i>
+                            </a>` : ''}
+                        </div>
+                    </div>
+                    
+                    <div class="hash-section">
+                        <div class="hash-label">
+                            <i data-lucide="link"></i>
+                            <span>Blockchain TX</span>
+                        </div>
+                        <div class="hash-value" title="${blockchainTx}">
+                            <code>${blockchainTx.substring(0, 16)}...</code>
+                            <button class="copy-btn" onclick="copyToClipboard('${blockchainTx}')">
+                                <i data-lucide="copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="evidence-actions">
+                    <button class="btn btn-sm btn-outline" onclick="evidenceDisplay.showEvidenceDetails('${evidence.id}')">
+                        <i data-lucide="eye"></i>
+                        View Details
+                    </button>
+                    ${this.canDownload() ? `
+                        <button class="btn btn-sm btn-primary" onclick="evidenceDisplay.downloadEvidence('${evidence.id}')">
+                            <i data-lucide="download"></i>
+                            Download
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-sm btn-outline" onclick="evidenceDisplay.verifyEvidence('${evidence.id}')">
+                        <i data-lucide="shield-check"></i>
+                        Verify
+                    </button>
+                </div>
+            </div>
+        `;
+    }
+
+    getFileTypeIcon(fileName) {
+        const extension = fileName.split('.').pop().toLowerCase();
+        const iconMap = {
+            'pdf': '<i data-lucide="file-text" style="color: #ef4444;"></i>',
+            'jpg': '<i data-lucide="image" style="color: #10b981;"></i>',
+            'jpeg': '<i data-lucide="image" style="color: #10b981;"></i>',
+            'png': '<i data-lucide="image" style="color: #10b981;"></i>',
+            'gif': '<i data-lucide="image" style="color: #10b981;"></i>',
+            'mp4': '<i data-lucide="video" style="color: #8b5cf6;"></i>',
+            'avi': '<i data-lucide="video" style="color: #8b5cf6;"></i>',
+            'mov': '<i data-lucide="video" style="color: #8b5cf6;"></i>',
+            'mp3': '<i data-lucide="music" style="color: #f59e0b;"></i>',
+            'wav': '<i data-lucide="music" style="color: #f59e0b;"></i>',
+            'doc': '<i data-lucide="file-text" style="color: #3b82f6;"></i>',
+            'docx': '<i data-lucide="file-text" style="color: #3b82f6;"></i>',
+            'zip': '<i data-lucide="archive" style="color: #6b7280;"></i>',
+            'rar': '<i data-lucide="archive" style="color: #6b7280;"></i>'
+        };
+        return iconMap[extension] || '<i data-lucide="file" style="color: #6b7280;"></i>';
+    }
+
+    formatFileSize(bytes) {
+        if (!bytes) return 'Unknown';
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        if (bytes === 0) return '0 Bytes';
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    formatWalletAddress(address) {
+        if (!address) return 'Unknown';
+        if (address.length > 20) {
+            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+        }
+        return address;
+    }
+
+    generateMockIPFSHash() {
+        return 'Qm' + Array.from({ length: 44 }, () =>
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+                .charAt(Math.floor(Math.random() * 62))
+        ).join('');
+    }
+
+    generateMockTxHash() {
+        return '0x' + Array.from({ length: 64 }, () =>
+            '0123456789abcdef'.charAt(Math.floor(Math.random() * 16))
+        ).join('');
+    }
+
+    canDownload() {
+        if (!this.currentUser) return false;
+        const role = this.currentUser.role;
+        return role !== 'public_viewer';
+    }
+
+    async showEvidenceDetails(evidenceId) {
+        try {
+            const response = await fetch(`/api/evidence/${evidenceId}`);
+            if (response.ok) {
+                const evidence = await response.json();
+                this.displayEvidenceModal(evidence);
+            } else {
+                showAlert('Failed to load evidence details', 'error');
+            }
+        } catch (error) {
+            console.error('Error loading evidence details:', error);
+            showAlert('Error loading evidence details', 'error');
+        }
+    }
+
+    displayEvidenceModal(evidence) {
+        const modal = document.createElement('div');
+        modal.className = 'modal active';
+        modal.innerHTML = `
+            <div class="modal-content evidence-modal">
+                <div class="modal-header">
+                    <h3>Evidence Details</h3>
+                    <button class="modal-close" onclick="this.closest('.modal').remove()">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="evidence-details-grid">
+                        <div class="detail-section">
+                            <h4>Basic Information</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">Title:</span>
+                                <span class="detail-value">${evidence.title || evidence.file_name}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Description:</span>
+                                <span class="detail-value">${evidence.description || 'No description'}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Case ID:</span>
+                                <span class="detail-value">${evidence.case_id}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Type:</span>
+                                <span class="detail-value">${evidence.type || 'Unknown'}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section">
+                            <h4>File Information</h4>
+                            <div class="detail-row">
+                                <span class="detail-label">File Name:</span>
+                                <span class="detail-value">${evidence.file_name}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">File Size:</span>
+                                <span class="detail-value">${this.formatFileSize(evidence.file_size)}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Upload Date:</span>
+                                <span class="detail-value">${new Date(evidence.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Submitted By:</span>
+                                <span class="detail-value">${evidence.submitted_by}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="detail-section full-width">
+                            <h4>Blockchain & Hash Information</h4>
+                            <div class="hash-details">
+                                <div class="hash-detail-row">
+                                    <span class="hash-detail-label">SHA-256 Hash:</span>
+                                    <div class="hash-detail-value">
+                                        <code>${evidence.hash}</code>
+                                        <button class="copy-btn" onclick="copyToClipboard('${evidence.hash}')">
+                                            <i data-lucide="copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="hash-detail-row">
+                                    <span class="hash-detail-label">IPFS CID:</span>
+                                    <div class="hash-detail-value">
+                                        <code>${evidence.ipfs_cid || evidence.ipfs_hash || this.generateMockIPFSHash()}</code>
+                                        <button class="copy-btn" onclick="copyToClipboard('${evidence.ipfs_cid || evidence.ipfs_hash || this.generateMockIPFSHash()}')">
+                                            <i data-lucide="copy"></i>
+                                        </button>
+                                        ${(evidence.ipfs_gateway_url || evidence.ipfs_cid) ? `
+                                        <a href="${evidence.ipfs_gateway_url || 'https://gateway.pinata.cloud/ipfs/' + (evidence.ipfs_cid)}" target="_blank" class="btn-icon" title="View on IPFS" style="margin-left: 5px;">
+                                            <i data-lucide="external-link"></i>
+                                        </a>` : ''}
+                                    </div>
+                                </div>
+                                <div class="hash-detail-row">
+                                    <span class="hash-detail-label">Blockchain TX:</span>
+                                    <div class="hash-detail-value">
+                                        <code>${evidence.blockchain_tx || this.generateMockTxHash()}</code>
+                                        <button class="copy-btn" onclick="copyToClipboard('${evidence.blockchain_tx || this.generateMockTxHash()}')">
+                                            <i data-lucide="copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    ${this.canDownload() ? `
+                        <button class="btn btn-primary" onclick="evidenceDisplay.downloadEvidence('${evidence.id}')">
+                            <i data-lucide="download"></i>
+                            Download Evidence
+                        </button>
+                    ` : ''}
+                    <button class="btn btn-outline" onclick="evidenceDisplay.verifyEvidence('${evidence.id}')">
+                        <i data-lucide="shield-check"></i>
+                        Verify Integrity
+                    </button>
+                    <button class="btn btn-outline" onclick="this.closest('.modal').remove()">
+                        Close
+                    </button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        // Initialize Lucide icons
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    }
+
+    async downloadEvidence(evidenceId) {
+        if (!this.canDownload()) {
+            showAlert('You do not have permission to download evidence', 'error');
+            return;
+        }
+
+        try {
+            const userWallet = this.currentUser.wallet_address || this.currentUser.email;
+            const response = await fetch(`/api/evidence/${evidenceId}/download`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ userWallet })
+            });
+
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `evidence_${evidenceId}_watermarked`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+
+                showAlert('Evidence downloaded successfully', 'success');
+            } else {
+                const error = await response.json();
+                showAlert(error.error || 'Download failed', 'error');
+            }
+        } catch (error) {
+            console.error('Download error:', error);
+            showAlert('Download failed', 'error');
+        }
+    }
+
+    async verifyEvidence(evidenceId) {
+        try {
+            const response = await fetch(`/api/evidence/${evidenceId}/verify`);
+            if (response.ok) {
+                const result = await response.json();
+                if (result.valid) {
+                    showAlert('Evidence integrity verified successfully', 'success');
+                } else {
+                    showAlert('Evidence integrity verification failed', 'error');
+                }
+            } else {
+                showAlert('Verification failed', 'error');
+            }
+        } catch (error) {
+            console.error('Verification error:', error);
+            showAlert('Verification failed', 'error');
+        }
+    }
+}
+
+// Copy to clipboard function
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showAlert('Copied to clipboard', 'success');
+    }).catch(err => {
+        console.error('Failed to copy:', err);
+        showAlert('Failed to copy to clipboard', 'error');
+    });
+}
+
+// Initialize evidence display system
+let evidenceDisplay;
+document.addEventListener('DOMContentLoaded', function () {
+    evidenceDisplay = new EvidenceDisplay();
+});
+
+// Export for use in other modules
+if (typeof window !== 'undefined') {
+    window.EvidenceDisplay = EvidenceDisplay;
+    window.copyToClipboard = copyToClipboard;
+}
